@@ -1,0 +1,3 @@
+[submodule "dep/ai-forgot-this-frontend"]
+	path = dep/ai-forgot-this-frontend
+	url = git@github.com:darkmusic/ai-forgot-this-frontend

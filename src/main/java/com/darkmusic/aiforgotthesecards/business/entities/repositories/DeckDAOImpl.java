@@ -1,6 +1,7 @@
 package com.darkmusic.aiforgotthesecards.business.entities.repositories;
 
 import com.darkmusic.aiforgotthesecards.business.entities.Deck;
+import com.darkmusic.aiforgotthesecards.business.entities.User;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,15 +23,27 @@ public class DeckDAOImpl implements DeckDAO {
     }
 
     @Override
+    public Iterable<Deck> findByUser(User user) {
+        return em.createQuery("from Deck where user_id = :userId", Deck.class)
+                .setParameter("userId", user.getId())
+                .getResultList();
+    }
+
+    @Override
     public <S extends Deck> S save(S entity) {
-        em.persist(entity);
+        if (entity.getId() != null && entity.getId() > 0L) {
+            em.merge(entity);
+        }
+        else {
+            em.persist(entity);
+        }
         return entity;
     }
 
     @Override
     public <S extends Deck> Iterable<S> saveAll(Iterable<S> entities) {
         for (S entity : entities) {
-            em.persist(entity);
+            save(entity);
         }
         return entities;
     }

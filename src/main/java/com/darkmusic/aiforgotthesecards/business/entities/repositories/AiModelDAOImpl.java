@@ -19,15 +19,28 @@ public class AiModelDAOImpl implements AiModelDAO {
     }
 
     @Override
+    public AiModel findAiModelByModel(String model) {
+        return em.createQuery("from AiModel where model = :model", AiModel.class)
+                .setParameter("model", model)
+                .getSingleResult();
+    }
+
+    @Override
     public <S extends AiModel> S save(S entity) {
-        em.persist(entity);
+        if (entity.getId() != null && entity.getId() > 0L) {
+            em.merge(entity);
+        }
+        else {
+            em.persist(entity);
+        }
+
         return entity;
     }
 
     @Override
     public <S extends AiModel> Iterable<S> saveAll(Iterable<S> entities) {
         for (S entity : entities) {
-            em.persist(entity);
+            save(entity);
         }
         return entities;
     }

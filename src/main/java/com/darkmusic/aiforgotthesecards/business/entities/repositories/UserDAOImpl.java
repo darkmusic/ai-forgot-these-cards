@@ -21,8 +21,25 @@ public class UserDAOImpl implements UserDAO {
     }
 
     @Override
+    public Optional<User> findByUsername(String username) {
+        var query = em.createQuery("from User where username = :username", User.class);
+        query.setParameter("username", username);
+        return query.getResultList().stream().findFirst();
+    }
+
+    @Override
     public <S extends User> S save(S entity) {
-        em.persist(entity);
+        // If the user already exists and the password hash is not set, keep the existing password hash
+        if (entity.getId() != null && entity.getId() > 0L) {
+            var existing = findById(entity.getId());
+            if (existing.isPresent() && entity.getPassword_hash() == null) {
+                entity.setPassword_hash(existing.get().getPassword_hash());
+            }
+            em.merge(entity);
+        }
+        else {
+            em.persist(entity);
+        }
         return entity;
     }
 

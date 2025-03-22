@@ -23,14 +23,19 @@ public class TagDAOImpl implements TagDAO {
 
     @Override
     public <S extends Tag> S save(S entity) {
-        em.persist(entity);
+        if (entity.getId() != null && entity.getId() > 0L) {
+            em.merge(entity);
+        }
+        else {
+            em.persist(entity);
+        }
         return entity;
     }
 
     @Override
     public <S extends Tag> Iterable<S> saveAll(Iterable<S> entities) {
         for (S entity : entities) {
-            em.persist(entity);
+            save(entity);
         }
         return entities;
     }

@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface AiModelDAO extends CrudRepository<AiModel, Long> {
     List<AiModel> query(TypedQuery<AiModel> query);
+
+    AiModel findAiModelByModel(String model);
 }

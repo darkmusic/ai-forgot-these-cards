@@ -14,17 +14,20 @@ public class AiChat {
     @Column(name="id", nullable = false)
     private Long id;
 
-    @Column(name="question")
+    @Column(name="question", columnDefinition = "text", nullable = false)
     private String question;
 
-    @Column(name="answer")
+    @Column(name="answer", columnDefinition = "text")
     private String answer;
 
-    @JoinColumn(name = "aimodel_id")
+    @JoinColumn(name = "aimodel_id", nullable = false)
     @ManyToOne
     private AiModel aiModel;
 
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     @ManyToOne
     private User user;
+
+    @Column(name="created_at", nullable = false)
+    private Long createdAt;
 }

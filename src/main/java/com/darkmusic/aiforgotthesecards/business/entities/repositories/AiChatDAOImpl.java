@@ -20,14 +20,20 @@ public class AiChatDAOImpl implements AiChatDAO {
 
     @Override
     public <S extends AiChat> S save(S entity) {
-        em.persist(entity);
+        if (entity.getId() != null && entity.getId() > 0L) {
+            em.merge(entity);
+        }
+        else {
+            em.persist(entity);
+        }
+
         return entity;
     }
 
     @Override
     public <S extends AiChat> Iterable<S> saveAll(Iterable<S> entities) {
         for (S entity : entities) {
-            em.persist(entity);
+            save(entity);
         }
         return entities;
     }

@@ -24,8 +24,11 @@ public class CardDAOTests {
     @Autowired
     private TagDAO tagDAO;
 
-    static Card createCard(CardDAO cardDAO, DeckDAO deckDAO, UserDAO userDAO, TagDAO tagDAO) {
-        var deck = DeckDAOTests.createDeck(deckDAO, userDAO, tagDAO);
+    @Autowired
+    private ThemeDAO themeDAO;
+
+    static Card createCard(CardDAO cardDAO, DeckDAO deckDAO, UserDAO userDAO, TagDAO tagDAO, ThemeDAO themeDAO) {
+        var deck = DeckDAOTests.createDeck(deckDAO, userDAO, tagDAO, themeDAO);
         var tag = TagDAOTests.createTag(tagDAO);
         var card = new Card();
         card.setFront("Test Front " + System.currentTimeMillis());
@@ -39,6 +42,6 @@ public class CardDAOTests {
     @Test
     void canCreateCard() {
         System.out.println("Testing card creation");
-        createCard(cardDAO, deckDAO, userDAO, tagDAO);
+        createCard(cardDAO, deckDAO, userDAO, tagDAO, themeDAO);
     }
 }

@@ -1,6 +1,8 @@
 package com.darkmusic.aiforgotthesecards.business.entities.repositories;
 
 import com.darkmusic.aiforgotthesecards.business.entities.Card;
+import com.darkmusic.aiforgotthesecards.business.entities.Deck;
+import com.darkmusic.aiforgotthesecards.business.entities.User;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,15 +23,35 @@ public class CardDAOImpl implements CardDAO {
     }
 
     @Override
+    public Iterable<Card> findByDeck(Deck deck) {
+        return em.createQuery("from Card where deck_id = :deckId", Card.class)
+                .setParameter("deckId", deck.getId())
+                .getResultList();
+    }
+
+    @Override
+    public Iterable<Card> findByDeckUser(User user) {
+        return em.createQuery("from Card where deck_id in (select id from Deck where user_id = :userId)", Card.class)
+                .setParameter("userId", user.getId())
+                .getResultList();
+    }
+
+    @Override
     public <S extends Card> S save(S entity) {
-        em.persist(entity);
+        if (entity.getId() != null && entity.getId() > 0L) {
+            em.merge(entity);
+        }
+        else {
+            em.persist(entity);
+        }
+
         return entity;
     }
 
     @Override
     public <S extends Card> Iterable<S> saveAll(Iterable<S> entities) {
         for (S entity : entities) {
-            em.persist(entity);
+            save(entity);
         }
         return entities;
     }

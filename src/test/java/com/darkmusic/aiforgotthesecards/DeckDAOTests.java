@@ -21,8 +21,11 @@ public class DeckDAOTests {
     @Autowired
     private TagDAO tagDAO;
 
-    static Deck createDeck(DeckDAO deckDAO, UserDAO userDAO, TagDAO tagDAO) {
-        var user = UserDAOTests.createUser(userDAO);
+    @Autowired
+    private ThemeDAO themeDAO;
+
+    static Deck createDeck(DeckDAO deckDAO, UserDAO userDAO, TagDAO tagDAO, ThemeDAO themeDAO) {
+        var user = UserDAOTests.createUser(userDAO, themeDAO);
         var tag = TagDAOTests.createTag(tagDAO);
         var deck = new Deck();
         deck.setName("Test Deck " + System.currentTimeMillis());
@@ -36,6 +39,6 @@ public class DeckDAOTests {
     @Test
     void canCreateDeck() {
         System.out.println("Testing deck creation");
-        createDeck(deckDAO, userDAO, tagDAO);
+        createDeck(deckDAO, userDAO, tagDAO, themeDAO);
     }
 }

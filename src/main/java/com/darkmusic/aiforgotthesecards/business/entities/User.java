@@ -1,10 +1,10 @@
 package com.darkmusic.aiforgotthesecards.business.entities;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import java.util.Set;
-import static jakarta.persistence.CascadeType.ALL;
 
 @Setter
 @Getter
@@ -18,16 +18,17 @@ public class User {
     @Column(name="id", nullable = false)
     private Long id;
 
-    @Column(name="username")
+    @Column(name="username", nullable = false)
     private String username;
 
-    @Column(name="password_hash")
+    @Column(name="password_hash", nullable = false)
     private String password_hash;
 
-    @Column(name="name")
+    @Column(name="name",  nullable = false)
     private String name;
 
-    @OneToMany(cascade = ALL, mappedBy = "user")
+    @OneToMany(mappedBy = "user")
+    @JsonManagedReference
     private Set<Deck> decks;
 
     @Column(name="is_admin", nullable = false, columnDefinition = "boolean default false")
@@ -35,4 +36,11 @@ public class User {
 
     @Column(name="is_active", nullable = false, columnDefinition = "boolean default true")
     private boolean isActive;
+
+    @Column(name="profile_pic_url")
+    private String profile_pic_url;
+
+    @JoinColumn(name="theme_id")
+    @ManyToOne(targetEntity = Theme.class, fetch = FetchType.EAGER)
+    private Long themeId;
 }
