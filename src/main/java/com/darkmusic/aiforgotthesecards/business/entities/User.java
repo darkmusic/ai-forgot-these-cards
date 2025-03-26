@@ -41,6 +41,5 @@ public class User {
     private String profile_pic_url;
 
     @JoinColumn(name="theme_id")
-    @ManyToOne(targetEntity = Theme.class, fetch = FetchType.EAGER)
     private Long themeId;
 }
