@@ -37,7 +37,8 @@ public class User {
     @Column(name="is_active", nullable = false, columnDefinition = "boolean default true")
     private boolean isActive;
 
-    @Column(name="profile_pic_url")
+    @Column(name="profile_pic_url", nullable = false,
+            columnDefinition = "varchar(255) default '/vite.svg'") // Default profile picture URL
     private String profile_pic_url;
 
     @JoinColumn(name="theme_id")
