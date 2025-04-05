@@ -81,9 +81,9 @@ To get started with the project, follow these steps:
    paru -S just
    ```
 3. Install Docker, Podman, Rancher Desktop, etc. if needed.
-4. Start the PostgreSQL container using the provided `compose.yaml` file:
+4. Start the PostgreSQL container using the provided `docker-compose.yaml` file:
    ```bash
-   docker-compose -f compose.yaml up -d
+   docker compose up -d
    ```
 5. Clone the repository and initialize the submodules:
    ```bash
