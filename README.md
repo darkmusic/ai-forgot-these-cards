@@ -60,3 +60,60 @@ Here are some screenshots of the application:
 - The application uses PostgreSQL as the database, and you can run it using Docker, Podman, Rancher Desktop, etc. with the provided `compose.yaml` file. Alternatively, you can configure it to connect to an existing PostgreSQL server.
 - AI is provided as assistance, but should not be assumed to be factually correct, especially in regard to the intricacies of grammar and language. Always review the AI-generated content before saving it to ensure accuracy and appropriateness for your use case.
 - Different models may provide different results, and the quality of the output will depend on the model used and the input provided.
+
+### Getting Started
+To get started with the project, follow these steps:
+1. Download and install Ollama if needed, and run it via `ollama serve`."
+2. Install Just if needed.
+   ```bash
+   brew install just
+   ```
+   or
+   ```bash
+   scoop install just
+   ```
+   or
+   ```bash
+   choco install just
+   ```
+    or
+    ```bash
+   paru -S just
+   ```
+3. Install Docker, Podman, Rancher Desktop, etc. if needed.
+4. Start the PostgreSQL container using the provided `compose.yaml` file:
+   ```bash
+   docker-compose -f compose.yaml up -d
+   ```
+5. Clone the repository and initialize the submodules:
+   ```bash
+   git clone https://github.com/darkmusic/ai-forgot-these-cards
+   cd ai-forgot-these-cards
+   git submodule init
+   ```
+6. Install JDK 23 (GraalVM-CE-23.0.2 has been confirmed to work) and Maven.
+7. In src/dep/ai-forgot-this-frontend, run:
+   ```bash
+   npm install
+   ```
+8. Make sure your JAVA_HOME is set to the correct JDK version:
+   ```bash
+   export JAVA_HOME=/path/to/your/jdk
+   ```
+   or on Windows:
+   ```bash
+   set JAVA_HOME=C:\path\to\your\jdk
+   ```
+9. In the project root, run:
+   ```bash
+   just install
+   ```
+10. Ensure that the DB container is running and you can connect to it.
+11. Run the application:
+    ```bash
+    just run
+    ```
+12. Open your web browser and navigate to `http://localhost:8086` and log in with username "cards", password "cards".
+13. Go to the "Admin" section and add a user with the role "USER".
+14. Change the "cards" admin user's password if needed.
+15. Add a model to Ollama using the admin interface (e.g. `llama2` or `smollm2:135m`).
