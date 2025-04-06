@@ -104,16 +104,24 @@ To get started with the project, follow these steps:
    ```bash
    set JAVA_HOME=C:\path\to\your\jdk
    ```
-9. In the project root, run:
+9. Also ensure your PATH variable points to the correct Java binary. For example, on Unix-like systems:
+   ```bash
+   export PATH=$JAVA_HOME/bin:$PATH
+   ```
+   On Windows:
+   ```bash
+   set PATH=%JAVA_HOME%\bin;%PATH%
+   ```
+10. In the project root, run:
    ```bash
    just install
    ```
-10. Ensure that the DB container is running and you can connect to it.
-11. Run the application:
+11. Ensure that the DB container is running and you can connect to it.
+12. Run the application:
     ```bash
     just run
     ```
-12. Open your web browser and navigate to `http://localhost:8086` and log in with username "cards", password "cards".
-13. Go to the "Admin" section and add a user with the role "USER".
-14. Change the "cards" admin user's password if needed.
-15. Add a model to Ollama using the admin interface (e.g. `llama2` or `smollm2:135m`).
+13. Open your web browser and navigate to `http://localhost:8086` and log in with username "cards", password "cards".
+14. Go to the "Admin" section and add a user with the role "USER".
+15. Change the "cards" admin user's password if needed.
+16. Add a model to Ollama using the admin interface (e.g. `llama2` or `smollm2:135m`).
