@@ -1,5 +1,6 @@
 package com.darkmusic.aiforgotthesecards.business.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -21,8 +22,10 @@ public class Tag {
     private String name;
 
     @ManyToMany(mappedBy = "tags")
+    @JsonIgnore
     private Set<Deck> decks;
 
     @ManyToMany(mappedBy = "tags")
+    @JsonIgnore
     private Set<Card> cards;
 }

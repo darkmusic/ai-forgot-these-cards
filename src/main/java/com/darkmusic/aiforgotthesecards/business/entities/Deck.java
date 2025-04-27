@@ -36,12 +36,11 @@ public class Deck {
     @JsonManagedReference
     private Set<Card> cards;
 
-    @ManyToMany
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
             name="deck_tag",
             joinColumns = @JoinColumn(name="deck_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name="tag_id", referencedColumnName = "id")
     )
-    @JsonIgnore
     private Set<Tag> tags;
 }

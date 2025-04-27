@@ -91,7 +91,10 @@ To get started with the project, follow these steps:
    cd ai-forgot-these-cards
    git submodule init
    ```
-6. Install JDK 23 (GraalVM-CE-23.0.2 has been confirmed to work) and Maven.
+6. Install JDK 23 and Maven.
+- GraalVM-CE-23.0.2 has been confirmed to work
+- Correto-23.0.2 has also been confirmed to work
+
 7. In src/dep/ai-forgot-this-frontend, run:
    ```bash
    npm install
