@@ -1,7 +1,13 @@
-#set shell := ["pwsh", "-c"]
+set windows-shell := ["pwsh", "-c"]
+
+clean:
+    @./mvnw clean
+
+compile:
+    @./mvnw clean compile
 
 install:
-    @./mvnw clean install -Dspring-boot.run.jvmArguments="-Dspring.profiles.active=prod,spring.output.ansi.enabled=always,--enable-preview"
+    @./mvnw clean install
 
 run:
-    @./mvnw clean spring-boot:run -Dspring-boot.run.jvmArguments="-Dspring.profiles.active=prod,spring.output.ansi.enabled=always,--enable-preview" 
+    @./mvnw clean spring-boot:run
