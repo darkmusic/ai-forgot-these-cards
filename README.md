@@ -2,12 +2,27 @@
 
 This is an AI-assisted flashcard creation and quiz website.
 
-The _AI-assisted_ part is to enable chatting with an LLM during creation/editing of a flashcard.
+The _AI-assisted_ part is initially to enable chatting with an LLM during creation/editing of a flashcard.
 
 This project consists of two parts:
 
-1. **Backend** (this repo): [Java/Spring, JPA/Hibernate, PostgreSQL](https://github.com/darkmusic/ai-forgot-these-cards)
-2. **Frontend** [ai-forgot-this-frontend](https://github.com/darkmusic/ai-forgot-this-frontend): [React](https://react.dev/), [TypeScript](https://www.typescriptlang.org/), [Vite](https://vite.dev/)
+1. **Backend**: (this repo)
+   - Makes use of:
+     - [Java](https://www.java.com/)
+     - [Spring](https://spring.io/)
+     - [JPA](https://www.oracle.com/java/technologies/persistence-jsp.html)
+     - [Hibernate](https://hibernate.org/)
+     - [Spring Security](https://spring.io/projects/spring-security)
+     - [PostgreSQL](https://www.postgresql.org/)
+     - [Ollama](https://ollama.com/) for AI integration
+     - [Maven](https://maven.apache.org/)
+     - [Just](https://just.systems/) for build automation
+2. **Frontend**: [ai-forgot-this-frontend](https://github.com/darkmusic/ai-forgot-this-frontend)
+    - Makes use of:
+      - [React](https://react.dev/)
+      - [TypeScript](https://www.typescriptlang.org/)
+      - [Vite](https://vite.dev/)
+      - [Just](https://just.systems/) for build automation
 
 Features:
 
