@@ -8,7 +8,6 @@ import com.darkmusic.aiforgotthesecards.business.entities.repositories.UserDAO;
 import com.darkmusic.aiforgotthesecards.web.contracts.AiAskRequest;
 import com.darkmusic.aiforgotthesecards.web.contracts.AiAskResponse;
 import org.springframework.ai.ollama.api.OllamaApi;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 
@@ -22,7 +21,6 @@ public class AiController {
     private final UserDAO userDAO;
     private final AiChatDAO aiChatDAO;
 
-    @Autowired
     public AiController(OllamaApi ollamaApi, AiModelDAO aiModelDAO, UserDAO userDAO, AiChatDAO aiChatDAO) {
         this.ollamaApi = ollamaApi;
         this.aiModelDAO = aiModelDAO;

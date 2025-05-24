@@ -1,4 +1,5 @@
-## Ai Forgot These Cards!
+# Ai Forgot These Cards
+
 This is an AI-assisted flashcard creation and quiz website.
 
 The _AI-assisted_ part is to enable chatting with an LLM during creation/editing of a flashcard.
@@ -9,6 +10,7 @@ This project consists of two parts:
 2. **Frontend** [ai-forgot-this-frontend](https://github.com/darkmusic/ai-forgot-this-frontend): [React](https://github.com/darkmusic/ai-forgot-this-frontend), [TypeScript](https://www.typescriptlang.org/), [Vite](https://vite.dev/)
 
 Features:
+
 - Admin management
 - Spring Security
 - User profiles
@@ -21,13 +23,16 @@ Features:
 - Quiz
 
 Runtime Requirements:
+
 - Java Runtime, currently tested with Java 24 (GraalVM-24.0.1+9.1)
 - PostgreSQL - A PostgreSQL container must be up and running (see [compose.yaml](compose.yaml)) or another existing PostgreSQL server must be available
 - Ollama must be installed and running
 - Docker/Rancher Desktop/etc. (Note that Podman currently is not supported)
 
-### Screenshots
+## Screenshots
+
 Here are some screenshots of the application:
+
 1. **Login Screen**:
 
    ![Login Screen](res/screenshots/sign_in.png)
@@ -54,7 +59,8 @@ Here are some screenshots of the application:
 12. **Add Model**:
     ![Add Model](res/screenshots/add_model.png)
 
-### General Remarks
+## General Remarks
+
 - This project is a work-in-progress and is intended for educational purposes only.
 - The AI integration is done using [Ollama](https://ollama.com/), which must be installed and running on your local machine. You can add models to Ollama and use them in the application.
 - The frontend is a submodule of this repository, so you will need to clone the frontend separately or initialize and update submodules after cloning this repo.
@@ -62,74 +68,116 @@ Here are some screenshots of the application:
 - AI is provided as assistance, but should not be assumed to be factually correct, especially in regard to the intricacies of grammar and language. Always review the AI-generated content before saving it to ensure accuracy and appropriateness for your use case.
 - Different models may provide different results, and the quality of the output will depend on the model used and the input provided.
 
-### Getting Started
+## Getting Started
+
 To get started with the project, follow these steps:
+
 1. Download and install Ollama if needed, and run it via `ollama serve`."
-2. Install Just if needed.
+1. Install Just if needed.
+
    ```bash
    brew install just
    ```
+
    or
+
    ```bash
    scoop install just
    ```
+
    or
+
    ```bash
    choco install just
    ```
+
     or
+
     ```bash
    paru -S just
    ```
-3. Install Docker, Rancher Desktop, etc. if needed.
-4. Customize the `docker-compose.yaml` file if needed, and then start the PostgreSQL container:
+
+1. Install Docker, Rancher Desktop, etc. if needed.
+1. Customize the `docker-compose.yaml` file if needed, and then start the PostgreSQL container:
+
    ```bash
    docker compose up -d
    ```
-5. Clone the repository and initialize the submodules:
+
+1. Clone the repository and initialize the submodules:
+
    ```bash
    git clone https://github.com/darkmusic/ai-forgot-these-cards
    cd ai-forgot-these-cards
    git submodule update --init
    ```
-6. Install JDK 24 and Maven.
+
+1. Install JDK 24 and Maven.
+
 - GraalVM-24.0.1+9.1 has been confirmed to work, though other JDKs may work as well.
 
-7. In src/dep/ai-forgot-this-frontend, run:
+1. In src/dep/ai-forgot-this-frontend, run:
+
    ```bash
    npm install
    ```
-8. Make sure your JAVA_HOME is set to the correct JDK version:
+
+1. Make sure your JAVA_HOME is set to the correct JDK version:
+
    ```bash
    export JAVA_HOME=/path/to/your/jdk
    ```
+
    or on Windows:
+
    ```bash
    set JAVA_HOME=C:\path\to\your\jdk
    ```
-9. Also ensure your PATH variable points to the correct Java binary. For example, on Unix-like systems:
+
+1. Also ensure your PATH variable points to the correct Java binary. For example, on Unix-like systems:
+
    ```bash
    export PATH=$JAVA_HOME/bin:$PATH
    ```
+
    On Windows:
+
    ```bash
    set PATH=%JAVA_HOME%\bin;%PATH%
    ```
-10. In the project root, run a maven clean compile (which will also build the frontend) by executing::
+
+1. In the project root, run a maven clean compile (which will also build the frontend) by executing::
+
    ```bash
    just compile
    ```
-11. Ensure that the DB container is running and you can connect to it.
-12. Run the application:
+
+1. Ensure that the DB container is running and you can connect to it.
+1. Run the application:
+
     ```bash
     just run
     ```
-13. Open your web browser and navigate to `http://localhost:8086` and log in with username "cards", password "cards".
-14. Go to the "Admin" section and add a user with the role "USER".
-15. Change the "cards" admin user's password if needed.
-16. Add a model to Ollama using the admin interface (e.g. `llama2` or `smollm2:135m`).
 
-#### Actuator Endpoints
+1. Open your web browser and navigate to `http://localhost:8086` and log in with username "cards", password "cards".
+1. Go to the "Admin" section and add a user with the role "USER".
+1. Change the "cards" admin user's password if needed.
+1. Add a model to Ollama using the admin interface (e.g. `llama2` or `smollm2:135m`).
+
+## Actuator Endpoints
+
 - The application exposes several actuator endpoints for monitoring and management. You can access them at `http://localhost:9090/actuator`.
 - Some useful endpoints include:
   - `http://localhost:9090/actuator/swagger-ui`: Access the Swagger UI for API documentation.
+
+## Roadmap
+
+- [X] Add theme support, and enable switching between themes.
+- [ ] Add profile picture upload support.
+- [ ] Implement a more sophisticated quiz system with spaced repetition.
+- [ ] Add formatting for flashcards (e.g. Markdown support).
+- [ ] Add support for statistics and progress tracking.
+- [ ] Add support for multiple languages.
+- [ ] Add support for importing/exporting flashcards in different formats (e.g. CSV, Anki).
+- [ ] Evaluate possible agentic or other AI-assisted integration, such as using the AI to create flashcards based on user input or other sources.
+- [ ] Consider supporting other / custom frontends, such as a mobile app or a different web framework.

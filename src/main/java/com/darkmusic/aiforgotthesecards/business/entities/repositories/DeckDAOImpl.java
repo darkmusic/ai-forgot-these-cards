@@ -4,7 +4,6 @@ import com.darkmusic.aiforgotthesecards.business.entities.Deck;
 import com.darkmusic.aiforgotthesecards.business.entities.User;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 import java.util.Optional;
@@ -12,7 +11,6 @@ import java.util.Optional;
 public class DeckDAOImpl implements DeckDAO {
     private final EntityManager em;
 
-    @Autowired
     public DeckDAOImpl(EntityManager em) {
         this.em = em;
     }

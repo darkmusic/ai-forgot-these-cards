@@ -4,7 +4,6 @@ import com.darkmusic.aiforgotthesecards.business.entities.User;
 import com.darkmusic.aiforgotthesecards.business.entities.repositories.UserDAO;
 import com.darkmusic.aiforgotthesecards.web.contracts.UserAuthResponse;
 import lombok.Getter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -14,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
     private final UserDAO userDAO;
 
-    @Autowired
     public UserController(UserDAO userDAO) {
         this.userDAO = userDAO;
     }

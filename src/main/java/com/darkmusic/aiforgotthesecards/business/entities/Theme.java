@@ -16,4 +16,13 @@ public class Theme {
 
     @Column(name="name", nullable = false)
     private String name;
+
+    @Column(name="description")
+    private String description;
+
+    @Column(name="cssUrl")
+    private String cssUrl;
+
+    @Column(name="active")
+    private boolean active;
 }

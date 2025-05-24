@@ -6,7 +6,6 @@ import com.darkmusic.aiforgotthesecards.business.entities.repositories.DeckDAO;
 import com.darkmusic.aiforgotthesecards.business.entities.repositories.TagDAO;
 import com.darkmusic.aiforgotthesecards.business.entities.repositories.UserDAO;
 import lombok.Getter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @Getter
@@ -16,7 +15,6 @@ public class TagController {
     private final UserDAO userDAO;
     private final TagDAO tagDAO;
 
-    @Autowired
     public TagController(DeckDAO deckDAO, UserDAO userDAO, TagDAO tagDAO) {
         this.deckDAO = deckDAO;
         this.userDAO = userDAO;

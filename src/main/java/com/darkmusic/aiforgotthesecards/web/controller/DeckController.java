@@ -4,7 +4,6 @@ import com.darkmusic.aiforgotthesecards.business.entities.Deck;
 import com.darkmusic.aiforgotthesecards.business.entities.repositories.DeckDAO;
 import com.darkmusic.aiforgotthesecards.business.entities.repositories.UserDAO;
 import lombok.Getter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @Getter
@@ -13,7 +12,6 @@ public class DeckController {
     private final DeckDAO deckDAO;
     private final UserDAO userDAO;
 
-    @Autowired
     public DeckController(DeckDAO deckDAO, UserDAO userDAO) {
         this.deckDAO = deckDAO;
         this.userDAO = userDAO;

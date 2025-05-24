@@ -1,15 +1,12 @@
 package com.darkmusic.aiforgotthesecards.business.entities;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.context.annotation.Lazy;
 
 import java.util.Set;
-import static jakarta.persistence.CascadeType.ALL;
 
 @Setter
 @Getter

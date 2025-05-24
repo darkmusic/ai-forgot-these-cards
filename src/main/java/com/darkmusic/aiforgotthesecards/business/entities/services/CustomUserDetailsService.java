@@ -1,7 +1,6 @@
 package com.darkmusic.aiforgotthesecards.business.entities.services;
 
 import com.darkmusic.aiforgotthesecards.business.entities.repositories.UserDAO;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,7 +16,6 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     private final UserDAO userDAO;
 
-    @Autowired
     public CustomUserDetailsService(UserDAO userDAO) {
         this.userDAO = userDAO;
     }

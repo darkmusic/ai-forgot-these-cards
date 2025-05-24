@@ -2,6 +2,7 @@ package com.darkmusic.aiforgotthesecards.business.entities.repositories;
 
 import com.darkmusic.aiforgotthesecards.business.entities.Theme;
 import jakarta.persistence.EntityManager;
+
 import java.util.Optional;
 
 public class ThemeDAOImpl implements ThemeDAO {
@@ -85,5 +86,13 @@ public class ThemeDAOImpl implements ThemeDAO {
     @Override
     public void deleteAll() {
         em.createQuery("delete from Theme").executeUpdate();
+    }
+
+    @Override
+    public Optional<Theme> findByName(String name) {
+        return em.createQuery("from Theme where name = :name", Theme.class)
+                .setParameter("name", name)
+                .getResultStream()
+                .findFirst();
     }
 }

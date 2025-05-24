@@ -3,7 +3,6 @@ package com.darkmusic.aiforgotthesecards.business.entities.repositories;
 import com.darkmusic.aiforgotthesecards.business.entities.Tag;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 import java.util.Optional;
@@ -11,7 +10,6 @@ import java.util.Optional;
 public class TagDAOImpl implements TagDAO {
     private final EntityManager em;
 
-    @Autowired
     public TagDAOImpl(EntityManager em) {
         this.em = em;
     }
