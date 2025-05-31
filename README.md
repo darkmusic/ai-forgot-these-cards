@@ -35,6 +35,10 @@ Features:
   - Chat with model
 - Deck management
 - Card management
+  - Create card with AI assistance
+  - Edit card with AI assistance
+  - View card
+  - Markdown support for card content
 - Quiz
 
 Runtime Requirements:
@@ -188,9 +192,9 @@ To get started with the project, follow these steps:
 ## Roadmap
 
 - [X] Add theme support, and enable switching between themes.
+- [X] Add formatting for flashcards (e.g. Markdown support).
 - [ ] Add profile picture upload support.
 - [ ] Implement a more sophisticated quiz system with spaced repetition.
-- [ ] Add formatting for flashcards (e.g. Markdown support).
 - [ ] Add support for statistics and progress tracking.
 - [ ] Add support for multiple languages.
 - [ ] Add support for importing/exporting flashcards in different formats (e.g. CSV, Anki).
