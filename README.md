@@ -193,6 +193,7 @@ To get started with the project, follow these steps:
 
 - [X] Add theme support, and enable switching between themes.
 - [X] Add formatting for flashcards (e.g. Markdown support).
+- [X] Add template support for flashcards.
 - [ ] Add profile picture upload support.
 - [ ] Implement a more sophisticated quiz system with spaced repetition.
 - [ ] Add support for statistics and progress tracking.
@@ -200,3 +201,5 @@ To get started with the project, follow these steps:
 - [ ] Add support for importing/exporting flashcards in different formats (e.g. CSV, Anki).
 - [ ] Evaluate possible agentic or other AI-assisted integration, such as using the AI to create flashcards based on user input or other sources.
 - [ ] Consider supporting other / custom frontends, such as a mobile app or a different web framework.
+- [ ] Add support for more AI models and providers.
+- [ ] Enable administrative exporting and importing of database.

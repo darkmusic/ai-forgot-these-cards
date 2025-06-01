@@ -40,4 +40,10 @@ public class Deck {
             inverseJoinColumns = @JoinColumn(name="tag_id", referencedColumnName = "id")
     )
     private Set<Tag> tags;
+
+    @Column(name="template_front", columnDefinition = "text")
+    private String templateFront;
+
+    @Column(name="template_back", columnDefinition = "text")
+    private String templateBack;
 }
