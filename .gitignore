@@ -34,3 +34,4 @@ build/
 
 ### App ###
 src/main/resources/static/
+db

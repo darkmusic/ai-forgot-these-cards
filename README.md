@@ -2,7 +2,7 @@
 
 This is an AI-assisted flashcard creation and quiz website.
 
-The _AI-assisted_ part is initially to enable chatting with an LLM during creation/editing of a flashcard.
+The _AI-assisted_ part initially enables chatting with an LLM during creation/editing of a flashcard.
 
 This project consists of two parts:
 
@@ -32,10 +32,10 @@ Features:
 - Ollama integration
   - List models
   - Add/pull model
-  - Chat with model
+  - Chat with a model
 - Deck management
 - Card management
-  - Create card with AI assistance
+  - Create a card with AI assistance
   - Edit card with AI assistance
   - View card
   - Markdown support for card content
@@ -43,10 +43,10 @@ Features:
 
 Runtime Requirements:
 
-- Java Runtime, currently tested with Java 24 (GraalVM-24.0.1+9.1)
-- PostgreSQL - A PostgreSQL container must be up and running (see [compose.yaml](compose.yaml)) or another existing PostgreSQL server must be available
+- Java Runtime, currently tested with Java 24 (GraalVM-24.0.2+11.1)
+- PostgreSQL - A PostgreSQL container must be up and running (see [compose.yaml](compose.yaml)), or another existing PostgreSQL server must be available
 - Ollama must be installed and running
-- Docker/Rancher Desktop/etc. (Note that Podman currently is not supported)
+- Docker/Rancher Desktop/etc. (Note that Podman is currently not supported.)
 
 ## Screenshots
 
@@ -83,9 +83,9 @@ Here are some screenshots of the application:
 - This project is a work-in-progress and is intended for educational purposes only.
 - The AI integration is done using [Ollama](https://ollama.com/), which must be installed and running on your local machine. You can add models to Ollama and use them in the application.
 - The frontend is a submodule of this repository, so you will need to clone the frontend separately or initialize and update submodules after cloning this repo.
-- The application uses PostgreSQL as the database, and you can run it using Docker, Rancher Desktop, etc. with the provided `compose.yml` file. Alternatively, you can configure it to connect to an existing PostgreSQL server.
-- AI is provided as assistance, but should not be assumed to be factually correct, especially in regard to the intricacies of grammar and language. Always review the AI-generated content before saving it to ensure accuracy and appropriateness for your use case.
-- Different models may provide different results, and the quality of the output will depend on the model used and the input provided.
+- The application uses PostgreSQL as the database, and you can run it using Docker, Rancher Desktop, etc., with the provided `compose.yml` file. Alternatively, you can configure it to connect to an existing PostgreSQL server.
+- AI is provided as assistance, but should not be assumed to be factually correct, especially regarding the intricacies of grammar and language. Always review the AI-generated content before saving it to ensure accuracy and appropriateness for your use case.
+- Different models may provide different results, and the output quality will depend on the model used and the input provided.
 
 ## Getting Started
 
@@ -133,7 +133,7 @@ To get started with the project, follow these steps:
 
 1. Install JDK 24 and Maven.
 
-- GraalVM-24.0.1+9.1 has been confirmed to work, though other JDKs may work as well.
+- GraalVM-24.0.2+11.1 has been confirmed to work, though other JDKs may also work.
 
 1. In src/dep/ai-forgot-this-frontend, run:
 
@@ -147,13 +147,13 @@ To get started with the project, follow these steps:
    export JAVA_HOME=/path/to/your/jdk
    ```
 
-   or on Windows:
+   Or on Windows:
 
    ```bash
    set JAVA_HOME=C:\path\to\your\jdk
    ```
 
-1. Also ensure your PATH variable points to the correct Java binary. For example, on Unix-like systems:
+1. Ensure your PATH variable points to the correct Java binary. For example, on Unix-like systems:
 
    ```bash
    export PATH=$JAVA_HOME/bin:$PATH
@@ -165,41 +165,62 @@ To get started with the project, follow these steps:
    set PATH=%JAVA_HOME%\bin;%PATH%
    ```
 
-1. In the project root, run a maven clean compile (which will also build the frontend) by executing::
+1. In the project root, run a maven clean compile (which will also build the frontend) by executing:
 
    ```bash
    just compile
    ```
 
-1. Ensure that the DB container is running and you can connect to it.
+1. Ensure the DB container is running and you can connect.
 1. Run the application:
 
     ```bash
     just run
     ```
 
-1. Open your web browser and navigate to `http://localhost:8086` and log in with username "cards", password "cards".
+1. Open your web browser, navigate to `http://localhost:8086`, and log in with username "cards" and password "cards".
 1. Go to the "Admin" section and add a user with the role "USER".
 1. Change the "cards" admin user's password if needed.
-1. Add a model to Ollama using the admin interface (e.g. `llama2` or `smollm2:135m`).
+1. Add a model to Ollama using the admin interface (e.g., `llama2` or `smollm2:135m`).
+
+## Exporting the database
+
+This will export the database to `db/backup.sql`.
+
+Notes:
+1. This will first delete the existing backup, so back up the backup if you want to keep it.
+1. You will be required to enter the password when this runs.
+
+```bash
+just export-db
+```
+## Importing the database
+
+Notes:
+1. This will drop the current database, so be sure you have exported it first!
+1. You will be required to enter the password when this runs.
+
+```bash
+just import-db
+```
 
 ## Actuator Endpoints
 
 - The application exposes several actuator endpoints for monitoring and management. You can access them at `http://localhost:9090/actuator`.
-- Some useful endpoints include:
+- Some functional endpoints include:
   - `http://localhost:9090/actuator/swagger-ui`: Access the Swagger UI for API documentation.
 
 ## Roadmap
 
 - [X] Add theme support, and enable switching between themes.
-- [X] Add formatting for flashcards (e.g. Markdown support).
+- [X] Add formatting for flashcards (e.g., Markdown support).
 - [X] Add template support for flashcards.
+- [X] Enable administrative exporting and importing of the database.
 - [ ] Add profile picture upload support.
 - [ ] Implement a more sophisticated quiz system with spaced repetition.
 - [ ] Add support for statistics and progress tracking.
 - [ ] Add support for multiple languages.
-- [ ] Add support for importing/exporting flashcards in different formats (e.g. CSV, Anki).
+- [ ] Add support for importing/exporting flashcards in different formats (e.g., CSV, Anki).
 - [ ] Evaluate possible agentic or other AI-assisted integration, such as using the AI to create flashcards based on user input or other sources.
 - [ ] Consider supporting other / custom frontends, such as a mobile app or a different web framework.
 - [ ] Add support for more AI models and providers.
-- [ ] Enable administrative exporting and importing of database.

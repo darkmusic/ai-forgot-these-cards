@@ -7,3 +7,8 @@ services:
       - 'POSTGRES_USER=cards'
     ports:
       - '5433:5432'
+    volumes:
+      - postgres:/var/lib/postgresql/data
+
+volumes:
+  postgres:
