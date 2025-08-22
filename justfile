@@ -48,6 +48,7 @@ export-db:
     @& docker compose exec -t postgres rm -f /tmp/backup.sql
     @& docker compose exec -t postgres pg_dump -h $((((Get-Content -Path ./src/main/resources/application.properties | Where-Object { $_ -CLike "spring.datasource.url*" } | Select-Object -Index 0) -Split "//")[1]) -Split ":")[0] -U $((Get-Content -Path ./src/main/resources/application.properties | Where-Object { $_ -CLike "spring.datasource.user*" } | Select-Object -Index 0) -Split "=")[1] -W -F c -b -v -f "/tmp/backup.sql" $((((Get-Content -Path ./src/main/resources/application.properties | Where-Object { $_ -CLike "spring.datasource.url*" } | Select-Object -Index 0) -Split "//")[1]) -Split "/")[1]
     @& Remove-Item db/backup.sql
+    @New-Item -ItemType Directory -Path db -Force
     @& docker compose cp postgres:/tmp/backup.sql db/backup.sql
 
 # Imports the database via pg_restore
