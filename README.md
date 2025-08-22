@@ -190,7 +190,7 @@ Notes:
 1. This will first delete the existing backup, so back up the backup if you want to keep it.
 1. You will be required to enter the password when this runs.
 
-```bash
+```powershell
 just export-db
 ```
 
@@ -201,7 +201,7 @@ Notes:
 1. This will drop the current database, so be sure you have exported it first!
 1. You will be required to enter the password when this runs.
 
-```bash
+```powershell
 just import-db
 ```
 
@@ -217,11 +217,11 @@ just import-db
 - [X] Add formatting for flashcards (e.g., Markdown support).
 - [X] Add template support for flashcards.
 - [X] Enable administrative exporting and importing of the database.
+- [ ] Add support for importing/exporting flashcards in different formats (e.g., CSV, YAML, TOML, Anki).
 - [ ] Add profile picture upload support.
 - [ ] Implement a more sophisticated quiz system with spaced repetition.
 - [ ] Add support for statistics and progress tracking.
-- [ ] Add support for multiple languages.
-- [ ] Add support for importing/exporting flashcards in different formats (e.g., CSV, Anki).
+- [ ] Add support for multiple UI languages.
 - [ ] Evaluate possible agentic or other AI-assisted integration, such as using the AI to create flashcards based on user input or other sources.
 - [ ] Consider supporting other / custom frontends, such as a mobile app or a different web framework.
 - [ ] Add support for more AI models and providers.
