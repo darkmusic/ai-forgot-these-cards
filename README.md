@@ -21,6 +21,7 @@ This project consists of two parts:
     - Makes use of:
       - [React](https://react.dev/)
       - [TypeScript](https://www.typescriptlang.org/)
+      - [Sass](https://sass-lang.com/) for styling
       - [Vite](https://vite.dev/)
       - [Just](https://just.systems/) for build automation
 
@@ -59,7 +60,7 @@ Here are some screenshots of the application:
    ![User Home Page](res/screenshots/user_home.png)
 3. **User Settings**:
    ![User Settings](res/screenshots/user_settings.png)
-4. **Deck Management**:
+4. **Deck Management (with card template support)**:
    ![Deck Management](res/screenshots/manage_deck.png)
 5. **View Card**:
    ![View Card](res/screenshots/view_card.png)
@@ -67,9 +68,9 @@ Here are some screenshots of the application:
    ![Edit Card](res/screenshots/edit_card.png)
 7. **Create Card (With AI Assistance)**:
    ![Create Card](res/screenshots/create_card.png)
-8. **Quiz (Front of card)**:
+8. **Quiz (Front of card, showing Markdown formatting)**:
    ![Quiz](res/screenshots/quiz_front.png)
-9. **Quiz (Back of card)**:
+9. **Quiz (Back of card, showing Markdown formatting)**:
    ![Quiz Back](res/screenshots/quiz_back.png)
 10. **Admin Home**:
     ![Admin Management](res/screenshots/admin_home.png)
@@ -94,38 +95,39 @@ To get started with the project, follow these steps:
 1. Download and install Ollama if needed, and run it via `ollama serve`."
 1. Install Just if needed.
 
-   ```bash
+   ```powershell
    brew install just
    ```
 
    or
 
-   ```bash
+   ```powershell
    scoop install just
    ```
 
    or
 
-   ```bash
+   ```powershell
    choco install just
    ```
 
     or
 
-    ```bash
+    ```powershell
    paru -S just
    ```
 
 1. Install Docker, Rancher Desktop, etc. if needed.
+1. Install [PowerShell](https://github.com/PowerShell/PowerShell) if needed, as this will be used for running Just commands.
 1. Customize the `docker-compose.yaml` file if needed, and then start the PostgreSQL container:
 
-   ```bash
+   ```powershell
    docker compose up -d
    ```
 
 1. Clone the repository and initialize the submodules:
 
-   ```bash
+   ```powershell
    git clone https://github.com/darkmusic/ai-forgot-these-cards
    cd ai-forgot-these-cards
    git submodule update --init
@@ -137,48 +139,44 @@ To get started with the project, follow these steps:
 
 1. In src/dep/ai-forgot-this-frontend, run:
 
-   ```bash
+   ```powershell
    npm install
    ```
 
+1. If needed, install sass globally:
+
+   ```powershell
+   npm install -g sass
+   ```
+
 1. Make sure your JAVA_HOME is set to the correct JDK version:
+Note: This is a temporary setting for the current session. You may want to set it permanently in your system environment variables.
 
-   ```bash
-   export JAVA_HOME=/path/to/your/jdk
+   ```powershell
+   $env:JAVA_HOME = "C:\path\to\your\jdk"
    ```
 
-   Or on Windows:
+1. Ensure your PATH variable points to the correct Java binary.
+Note: this just temporarily adds the JDK to the PATH for the current session. You may want to add it permanently to your system environment variables.
 
-   ```bash
-   set JAVA_HOME=C:\path\to\your\jdk
+   ```powershell
+   $env:PATH += ";$env:JAVA_HOME"
    ```
 
-1. Ensure your PATH variable points to the correct Java binary. For example, on Unix-like systems:
+1. In the project root, using a PowerShell prompt, run a maven clean compile (which will also build the frontend) by executing:
 
-   ```bash
-   export PATH=$JAVA_HOME/bin:$PATH
-   ```
-
-   On Windows:
-
-   ```bash
-   set PATH=%JAVA_HOME%\bin;%PATH%
-   ```
-
-1. In the project root, run a maven clean compile (which will also build the frontend) by executing:
-
-   ```bash
+   ```powershell
    just compile
    ```
 
 1. Ensure the DB container is running and you can connect.
 1. Run the application:
 
-    ```bash
+    ```powershell
     just run
     ```
 
-1. Open your web browser, navigate to `http://localhost:8086`, and log in with username "cards" and password "cards".
+1. Open your web browser, navigate to [http://localhost:8086](http://localhost:8086), and log in with username "cards" and password "cards".
 1. Go to the "Admin" section and add a user with the role "USER".
 1. Change the "cards" admin user's password if needed.
 1. Add a model to Ollama using the admin interface (e.g., `llama2` or `smollm2:135m`).
@@ -188,15 +186,18 @@ To get started with the project, follow these steps:
 This will export the database to `db/backup.sql`.
 
 Notes:
+
 1. This will first delete the existing backup, so back up the backup if you want to keep it.
 1. You will be required to enter the password when this runs.
 
 ```bash
 just export-db
 ```
+
 ## Importing the database
 
 Notes:
+
 1. This will drop the current database, so be sure you have exported it first!
 1. You will be required to enter the password when this runs.
 

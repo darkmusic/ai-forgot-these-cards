@@ -6,19 +6,19 @@ set shell := ["pwsh", "-c"]
 
 # Does a Maven clean
 clean:
-    @./mvnw clean
+    @& mvnw clean
 
 # Does a Maven Compile
-compile:
-    @./mvnw clean compile
+compile: clean
+    @& mvnw compile
 
 # Does a Maven install
-install:
-    @./mvnw clean install
+install: clean
+    @& mvnw install
 
 # Runs the application
-run:
-    @./mvnw clean spring-boot:run
+run: clean
+    @& mvnw spring-boot:run
 
 #######################################################################
 # Database Commands
@@ -26,20 +26,20 @@ run:
 
 # Starts the database
 start-db:
-    @docker compose up -d
+    @& docker compose up -d
 
 # Stops the database
 stop-db:
-    @docker compose stop
+    @& docker compose stop
 
 # Restarts the database
 restart-db:
-    @docker compose restart
+    @& docker compose restart
 
 # Drops and re-creates the database
 drop-and-recreate-db:
-    @docker compose down -v postgres
-    @docker compose up -d postgres
+    @& docker compose down -v postgres
+    @& docker compose up -d postgres
 
 # Exports the database via pg_dump
 # This uses DB parameters in src/main/resources/application.properties
