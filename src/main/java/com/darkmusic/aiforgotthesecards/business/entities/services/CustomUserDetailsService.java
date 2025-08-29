@@ -22,7 +22,8 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        var user = userDAO.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+        var user = userDAO.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
 
         List<GrantedAuthority> authorities = new ArrayList<>();
         if (user.isAdmin()) {

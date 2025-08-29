@@ -34,4 +34,6 @@ build/
 
 ### App ###
 src/main/resources/static/
-db
+src/main/webapp/
+/db
+/web

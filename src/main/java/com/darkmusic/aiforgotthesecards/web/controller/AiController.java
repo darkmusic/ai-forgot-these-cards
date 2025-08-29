@@ -7,13 +7,14 @@ import com.darkmusic.aiforgotthesecards.business.entities.repositories.AiModelDA
 import com.darkmusic.aiforgotthesecards.business.entities.repositories.UserDAO;
 import com.darkmusic.aiforgotthesecards.web.contracts.AiAskRequest;
 import com.darkmusic.aiforgotthesecards.web.contracts.AiAskResponse;
+import lombok.Getter;
 import org.springframework.ai.ollama.api.OllamaApi;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
-
 import java.util.List;
 import java.util.stream.StreamSupport;
 
+@Getter
 @RestController
 public class AiController {
     private final OllamaApi ollamaApi;

@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.4.6</version>
+        <version>3.5.5</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.darkmusic</groupId>
@@ -16,21 +16,35 @@
     <description>ai-forgot-these-cards</description>
     <url/>
     <licenses>
-        <license/>
+        <license>
+            <name>MIT License</name>
+            <url>https://opensource.org/license/mit/</url>
+            <distribution>repo</distribution>
+        </license>
     </licenses>
     <developers>
-        <developer/>
+        <developer>
+            <id>darkmusic</id>
+            <name>Thomas Johnson</name>
+            <email>tbjohnson123@gmail.com</email>
+            <roles>
+                <role>Developer</role>
+            </roles>
+        </developer>
     </developers>
     <scm>
-        <connection/>
+        <connection>
+            scm:git://github.com/darkmusic/ai-forgot-these-cards.git
+        </connection>
         <developerConnection/>
         <tag/>
         <url/>
     </scm>
     <properties>
-        <java.version>24</java.version>
+        <java.version>21</java.version>
         <spring-ai.version>1.0.0-M6</spring-ai.version>
         <surefire.plugin.version>3.5.3</surefire.plugin.version>
+        <maven.compiler.release>21</maven.compiler.release>
     </properties>
     <dependencies>
         <dependency>
@@ -122,6 +136,11 @@
             <version>4.0.0-beta-1</version>
         </dependency>
         <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.18.0</version>
+        </dependency>
+        <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
             <version>2.8.8</version>
@@ -146,7 +165,7 @@
 
     <build>
         <plugins>
-            <plugin>
+                <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
@@ -156,12 +175,10 @@
                             <artifactId>lombok</artifactId>
                         </path>
                     </annotationProcessorPaths>
-                    <source>24</source>
-                    <target>24</target>
-                    <release>24</release>
-                    <compilerArgs>--enable-preview</compilerArgs>
+                    <release>21</release>
                 </configuration>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -183,7 +200,7 @@
                             <artifactId>lombok</artifactId>
                         </exclude>
                     </excludes>
-                    <jvmArguments>-Dspring.profiles.active=prod,spring.output.ansi.enabled=always,--enable-preview</jvmArguments>
+                    <jvmArguments>-Dspring.profiles.active=prod -Dspring.output.ansi.enabled=always -D--enable-preview</jvmArguments>
                 </configuration>
             </plugin>
             <plugin>

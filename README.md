@@ -27,6 +27,8 @@ This project consists of two parts:
 
 Features:
 
+- Fully containerized with Docker/Rancher Desktop/Podman/etc.
+- User management
 - Admin management
 - Spring Security
 - User profiles
@@ -44,17 +46,52 @@ Features:
 
 Runtime Requirements:
 
-- Java Runtime, currently tested with Java 24 (GraalVM-24.0.2+11.1)
+- Java Runtime, currently tested with Java 21 (GraalVM-21.0.8+12.1)
 - PostgreSQL - A PostgreSQL container must be up and running (see [compose.yaml](compose.yaml)), or another existing PostgreSQL server must be available
 - Ollama must be installed and running
-- Docker/Rancher Desktop/etc. (Note that Podman is currently not supported.)
+- Docker/Rancher Desktop/Podman/etc.
+
+## Architecture
+
+### Application architecture
+
+```mermaid
+flowchart TD
+    subgraph Backend
+        A[Java Spring Boot Application]
+        B[PostgreSQL Database]
+        C[Ollama AI Service]
+    end
+
+    subgraph Frontend
+        D[React Application]
+    end
+
+    D -->|HTTP Requests| A
+    A -->|JPA/Hibernate| B
+    A -->|Ollama API Calls| C
+```
+
+### Container architecture
+
+```mermaid
+flowchart TD
+    subgraph Containers
+        A[Tomcat/Spring Backend]
+        B[Nginx/React Frontend]
+        C[PostgreSQL DB]
+    end
+
+    B -->|REST API calls| A
+    A -->|Database calls| C
+```
+
 
 ## Screenshots
 
 Here are some screenshots of the application:
 
 1. **Login Screen**:
-
    ![Login Screen](res/screenshots/sign_in.png)
 2. **User Home Page, showing User Context Menu**:
    ![User Home Page](res/screenshots/user_home.png)
@@ -84,7 +121,7 @@ Here are some screenshots of the application:
 - This project is a work-in-progress and is intended for educational purposes only.
 - The AI integration is done using [Ollama](https://ollama.com/), which must be installed and running on your local machine. You can add models to Ollama and use them in the application.
 - The frontend is a submodule of this repository, so you will need to clone the frontend separately or initialize and update submodules after cloning this repo.
-- The application uses PostgreSQL as the database, and you can run it using Docker, Rancher Desktop, etc., with the provided `compose.yml` file. Alternatively, you can configure it to connect to an existing PostgreSQL server.
+- The application uses PostgreSQL as the database, and you can run it using Docker, Rancher Desktop, etc., with the provided `compose.yml` file. Alternatively, you can configure it to connect to an existing PostgreSQL server by commenting out the `db` service in `compose.yml` and updating the connection settings in `src/main/resources/application.properties`.
 - AI is provided as assistance, but should not be assumed to be factually correct, especially regarding the intricacies of grammar and language. Always review the AI-generated content before saving it to ensure accuracy and appropriateness for your use case.
 - Different models may provide different results, and the output quality will depend on the model used and the input provided.
 
@@ -117,14 +154,24 @@ To get started with the project, follow these steps:
    paru -S just
    ```
 
-1. Install Docker, Rancher Desktop, etc. if needed.
+1. If on Windows, add/edit .wslconfig in your user home folder with settings (adjust as needed for memory, etc.):
+
+```bash
+[wsl2]
+memory=16GB # Limits VM memory in WSL 2
+processors=2 # Makes the WSL 2 VM use this many virtual processors
+networkingMode=mirrored # Required to resolve an issue with Podman
+autoMemoryReclaim=gradual # To optimize memory reclaimation
+
+[automount]
+options = "metadata,umask=22,fmask=11" # To make windows disk access faster
+
+[experimental]
+sparseVhd=true # To minimize wsl container disk image use
+```
+
+1. Install Docker, Rancher Desktop, Podman, etc. if needed.
 1. Install [PowerShell](https://github.com/PowerShell/PowerShell) if needed, as this will be used for running Just commands.
-1. Customize the `docker-compose.yaml` file if needed, and then start the PostgreSQL container:
-
-   ```powershell
-   docker compose up -d
-   ```
-
 1. Clone the repository and initialize the submodules:
 
    ```powershell
@@ -133,9 +180,9 @@ To get started with the project, follow these steps:
    git submodule update --init
    ```
 
-1. Install JDK 24 and Maven.
+1. Install JDK 21 and Maven.
 
-- GraalVM-24.0.2+11.1 has been confirmed to work, though other JDKs may also work.
+- GraalVM 21 (GraalVM-21.0.8+12.1) has been confirmed to work, though other JDKs may also work.
 
 1. In src/dep/ai-forgot-this-frontend, run:
 
@@ -163,18 +210,11 @@ Note: this just temporarily adds the JDK to the PATH for the current session. Yo
    $env:PATH += ";$env:JAVA_HOME"
    ```
 
-1. In the project root, using a PowerShell prompt, run a maven clean compile (which will also build the frontend) by executing:
+1. Customize the `docker-compose.yaml` file if needed, and then build and start the containers:
 
    ```powershell
-   just compile
+   just build-deploy
    ```
-
-1. Ensure the DB container is running and you can connect.
-1. Run the application:
-
-    ```powershell
-    just run
-    ```
 
 1. Open your web browser, navigate to [http://localhost:8086](http://localhost:8086), and log in with username "cards" and password "cards".
 1. Go to the "Admin" section and add a user with the role "USER".
@@ -207,9 +247,7 @@ just import-db
 
 ## Actuator Endpoints
 
-- The application exposes several actuator endpoints for monitoring and management. You can access them at `http://localhost:9090/actuator`.
-- Some functional endpoints include:
-  - `http://localhost:9090/actuator/swagger-ui`: Access the Swagger UI for API documentation.
+- The application exposes several actuator endpoints for monitoring and management. You can access them at `http://localhost:8080/actuator`.
 
 ## Roadmap
 
@@ -217,6 +255,9 @@ just import-db
 - [X] Add formatting for flashcards (e.g., Markdown support).
 - [X] Add template support for flashcards.
 - [X] Enable administrative exporting and importing of the database.
+- [X] Create docker-compose for app and website and move entire solution to containers.
+- [ ] Remove dependency on local building and build entirely inside containers.
+- [ ] Add swagger/openapi support for the REST API.
 - [ ] Add support for importing/exporting flashcards in different formats (e.g., CSV, YAML, TOML, Anki).
 - [ ] Add profile picture upload support.
 - [ ] Implement a more sophisticated quiz system with spaced repetition.

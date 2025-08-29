@@ -14,27 +14,15 @@ compile: clean
 
 # Does a Maven install
 install: clean
-    @& mvnw install
+    @& mvnw "-Dmaven.test.skip=true" install
 
 # Runs the application
-run: clean
+run: compile
     @& mvnw spring-boot:run
 
 #######################################################################
 # Database Commands
 #######################################################################
-
-# Starts the database
-start-db:
-    @& docker compose up -d
-
-# Stops the database
-stop-db:
-    @& docker compose stop
-
-# Restarts the database
-restart-db:
-    @& docker compose restart
 
 # Drops and re-creates the database
 drop-and-recreate-db:
@@ -58,3 +46,49 @@ import-db: drop-and-recreate-db
     @& docker compose exec -t postgres rm -f /tmp/backup.sql
     @& docker compose cp db/backup.sql postgres:/tmp/backup.sql
     @& docker compose exec -t postgres pg_restore -h $((((Get-Content -Path ./src/main/resources/application.properties | Where-Object { $_ -CLike "spring.datasource.url*" } | Select-Object -Index 0) -Split "//")[1]) -Split ":")[0] -U $((Get-Content -Path ./src/main/resources/application.properties | Where-Object { $_ -CLike "spring.datasource.user*" } | Select-Object -Index 0) -Split "=")[1] -W -F c -v -d $((((Get-Content -Path ./src/main/resources/application.properties | Where-Object { $_ -CLike "spring.datasource.url*" } | Select-Object -Index 0) -Split "//")[1]) -Split "/")[1] "/tmp/backup.sql"
+
+
+#######################################################################
+# Docker-Compose Commands
+#######################################################################
+
+# Brings up the entire docker-compose stack
+up:
+    @& docker compose up -d
+
+# Builds the entire docker-compose stack without using cache
+build:
+    @& docker compose build --no-cache
+
+# Brings down the entire docker-compose stack
+down:
+    @& docker compose down
+
+# Restarts the entire docker-compose stack
+restart: down up
+
+# Builds and deploys the entire docker-compose stack without using cache
+build-deploy: install build up
+
+# Builds and redeploys the entire docker-compose stack without using cache, dropping and recreating the database
+# Note: This will delete all data in the database!
+delete-redeploy: install down-with-volumes build up
+
+# Brings down the entire docker-compose stack, including volumes
+down-with-volumes:
+    @& docker compose down -v
+
+# Tails the Tomcat logs from the app container
+tail-tomcat-logs:
+    @& docker compose logs -f app
+
+#######################################################################
+
+#######################################################################
+# Debugging Commands
+#######################################################################
+
+# Redeploys the application by doing a Maven install, bringing down the stack with volumes, rebuilding the images, bringing the stack back up, and tailing the Tomcat logs
+redeploy-watch: install down-with-volumes build up tail-tomcat-logs
+
+#######################################################################
