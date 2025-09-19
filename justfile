@@ -1,24 +1,26 @@
 set shell := ["pwsh", "-c"]
 
+export JAVA_HOME := "/usr/lib/jvm/java-21-graalvm"
+
 ########################################################################
 # Maven Lifecycle Commands
 ########################################################################
 
 # Does a Maven clean
 clean:
-    @& mvnw clean
+    @& ./mvnw clean
 
 # Does a Maven Compile
 compile: clean
-    @& mvnw compile
+    @& ./mvnw compile
 
 # Does a Maven install
 install: clean
-    @& mvnw "-Dmaven.test.skip=true" install
+    @& ./mvnw "-Dmaven.test.skip=true" install
 
 # Runs the application
 run: compile
-    @& mvnw spring-boot:run
+    @& ./mvnw spring-boot:run
 
 #######################################################################
 # Database Commands

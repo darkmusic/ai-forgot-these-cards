@@ -170,6 +170,9 @@ options = "metadata,umask=22,fmask=11" # To make windows disk access faster
 sparseVhd=true # To minimize wsl container disk image use
 ```
 
+1. Install Ollama and add at least one model (e.g., `llama2` or `smollm2:135m`).
+1. Make sure Ollama is running via `ollama serve`.
+1. Update the `spring.ai.ollama.base-url` property in `src/main/resources/application.properties` (default is `http://localhost:11434`, which will not work in the `app` container).
 1. Install Docker, Rancher Desktop, Podman, etc. if needed.
 1. Install [PowerShell](https://github.com/PowerShell/PowerShell) if needed, as this will be used for running Just commands.
 1. Clone the repository and initialize the submodules:
@@ -195,20 +198,13 @@ sparseVhd=true # To minimize wsl container disk image use
    ```powershell
    npm install -g sass
    ```
-
-1. Make sure your JAVA_HOME is set to the correct JDK version:
-Note: This is a temporary setting for the current session. You may want to set it permanently in your system environment variables.
+1. Run the following command to compile the SCSS files:
 
    ```powershell
-   $env:JAVA_HOME = "C:\path\to\your\jdk"
+   just compile-scss
    ```
 
-1. Ensure your PATH variable points to the correct Java binary.
-Note: this just temporarily adds the JDK to the PATH for the current session. You may want to add it permanently to your system environment variables.
-
-   ```powershell
-   $env:PATH += ";$env:JAVA_HOME"
-   ```
+1. Make sure your JAVA_HOME is set in `justfile` to the correct JDK location.   ```
 
 1. Customize the `docker-compose.yaml` file if needed, and then build and start the containers:
 
