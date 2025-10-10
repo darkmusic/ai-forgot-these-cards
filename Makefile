@@ -20,7 +20,8 @@ DB_VOLUME := pgdata
 
 clean:
 	@echo "Clean target directory (no local build)."
-	@rm -rf target web
+	@if [ -d target ]; then rm -rf target; fi
+	@if [ -d web ]; then rm -rf web; fi
 
 #######################################################################
 # Database Commands
