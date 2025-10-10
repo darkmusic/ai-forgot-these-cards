@@ -7,7 +7,7 @@ COPY dep/ai-forgot-this-frontend/ ./dep/ai-forgot-this-frontend/
 WORKDIR /app/dep/ai-forgot-this-frontend
 RUN npm ci \
 	&& npm run build:prod \
-	&& ./node_modules/.bin/sass src/scss:src/css || true \
+	&& ./node_modules/.bin/sass src/scss:src/css \
 	&& mkdir -p /app/web \
 	&& cp -r dist/* /app/web/
 
