@@ -1,33 +1,26 @@
 SHELL := bash
 
-export JAVA_HOME := /opt/graalvm-jdk-21.0.8+12.1
+# All build steps are containerized; no local JDK/Node/Maven required
 DOCKER_NETWORK := cards-net
 DB_CONTAINER := db
 APP_CONTAINER := app
 WEB_CONTAINER := web
 APP_IMAGE := aiforgot/app:latest
+WEB_IMAGE := aiforgot/web:latest
 DB_VOLUME := pgdata
 
-.PHONY: clean compile install run \
+.PHONY: clean \
 	drop-and-recreate-db export-db import-db \
 	build up down restart build-deploy delete-redeploy down-with-volumes tail-tomcat-logs \
-	redeploy-watch
+	redeploy-watch build-app-image build-web-image
 
 ########################################################################
-# Maven Lifecycle Commands
+# Local Build Helpers (noop) – kept for compatibility
 ########################################################################
 
 clean:
-	@./mvnw clean
-
-compile: clean
-	@./mvnw compile
-
-install: clean
-	@./mvnw "-Dmaven.test.skip=true" install
-
-run: compile
-	@./mvnw spring-boot:run
+	@echo "Clean target directory (no local build)."
+	@rm -rf target web
 
 #######################################################################
 # Database Commands
@@ -66,8 +59,13 @@ import-db: drop-and-recreate-db
 # Docker Commands (no docker compose)
 #######################################################################
 
-build:
+build-app-image:
 	@docker build -t "$(APP_IMAGE)" -f dockerfiles/app/Dockerfile .
+
+build-web-image:
+	@docker build -t "$(WEB_IMAGE)" -f dockerfiles/web/Dockerfile .
+
+build: build-app-image build-web-image
 
 up:
 	@# ensure network and volume
@@ -93,9 +91,7 @@ up:
 	@# web: create or start
 	@if ! docker ps -a --format '{{.Names}}' | grep -qx "$(WEB_CONTAINER)"; then \
 		docker run -d --name "$(WEB_CONTAINER)" --network "$(DOCKER_NETWORK)" -p "8086:80" \
-			-v "./dockerfiles/web/nginx.conf:/etc/nginx/conf.d/default.conf:ro" \
-			-v "./web:/usr/share/nginx/html:ro" \
-			nginx:latest; \
+			"$(WEB_IMAGE)"; \
 	else \
 		if ! docker ps --format '{{.Names}}' | grep -qx "$(WEB_CONTAINER)"; then docker start "$(WEB_CONTAINER)"; fi; \
 	fi
@@ -107,13 +103,13 @@ down:
 
 restart: down up
 
-build-deploy: install build up
+build-deploy: build up
 	@if docker ps -a --format '{{.Names}}' | grep -qx "$(APP_CONTAINER)"; then docker rm -f "$(APP_CONTAINER)"; fi
 	@docker run -d --name "$(APP_CONTAINER)" --network "$(DOCKER_NETWORK)" -p "8080:8080" -p "9090:9090" \
 		-e "DB_HOST=$(DB_CONTAINER)" -e "DB_PORT=5432" -e "DB_NAME=cards" -e "DB_USER=cards" -e "DB_PASSWORD=cards" \
 		"$(APP_IMAGE)"
 
-delete-redeploy: install down-with-volumes build up
+delete-redeploy: down-with-volumes build up
 
 down-with-volumes:
 	@$(MAKE) down
@@ -127,4 +123,4 @@ tail-tomcat-logs:
 # Debugging Commands
 #######################################################################
 
-redeploy-watch: install down-with-volumes build up tail-tomcat-logs
+redeploy-watch: down-with-volumes build up tail-tomcat-logs

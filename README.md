@@ -44,10 +44,13 @@ Features:
 
 Runtime Requirements:
 
-- Java Runtime, currently tested with Java 21 (GraalVM-21.0.8+12.1)
-- PostgreSQL - A PostgreSQL container must be up and running (see [compose.yaml](compose.yaml)), or another existing PostgreSQL server must be available
-- Llama.cpp must be installed and running
 - Docker/Rancher Desktop/Podman/etc.
+- Llama.cpp must be installed and running (can be on host or another machine)
+- GNU Make is needed to run the provided Makefile commands.
+
+Notes:
+
+- You do not need to install JDK, Maven, or Node.js to build/run. All compilation happens inside Docker images via multi-stage builds.
 
 ## Architecture
 
@@ -145,7 +148,7 @@ sparseVhd=true # To minimize wsl container disk image use
 
 1. Install Llama.cpp and download at least one model in GGUF format (e.g., `llama2` or `smollm2:135m`).
 1. Make sure Llama.cpp is running via `llama-server -m /path/to/model.gguf --port 8087` (add --host if needed).
-1. Update the `spring.ai.openai.chat.base-url` property in `src/main/resources/application.properties` (default is `http://localhost:8087`, which will _not_ work in the `app` container).
+1. Update the `spring.ai.openai.chat.base-url` property in `src/main/resources/application.properties` to a URL reachable from inside the `app` container (default may be `http://host.docker.internal:8087` or the LAN IP of your host, depending on your platform).
 1. Install Docker, Rancher Desktop, Podman, etc. if needed.
 1. Clone the repository and initialize the submodules:
 
@@ -155,31 +158,7 @@ sparseVhd=true # To minimize wsl container disk image use
    git submodule update --init
    ```
 
-1. Install JDK 21 and Maven.
-
-- GraalVM 21 (GraalVM-21.0.8+12.1) has been confirmed to work, though other JDKs may also work.
-
-1. In src/dep/ai-forgot-this-frontend, run:
-
-   ```bash
-   npm install
-   ```
-
-1. If needed, install sass globally:
-
-   ```bash
-   npm install -g sass
-   ```
-
-1. Run the following command to compile the SCSS files:
-
-   ```bash
-   make compile-scss
-   ```
-
-1. Make sure your JAVA_HOME is set in `Makefile` to the correct JDK location.   ```
-
-1. Customize the `docker-compose.yaml` file if needed, and then build and start the containers:
+1. No local toolchain needed. Build and start the containers (this compiles the backend WAR and the frontend SPA inside Docker images):
 
    ```bash
    make build-deploy
@@ -228,7 +207,7 @@ make import-db
 - [X] Transition to Llama.cpp instead of Ollama.
 - [X] Transition to GNU Make instead of Just.
 - [X] Transition from using Ollama Spring API to Spring AI OpenAI-compatible API.
-- [ ] Remove dependency on local building and build entirely inside containers.
+- [X] Remove dependency on local building and build entirely inside containers.
 - [ ] Add swagger/openapi support for the REST API.
 - [ ] Add support for importing/exporting flashcards in different formats (e.g., CSV, YAML, TOML, Anki).
 - [ ] Add profile picture upload support.
