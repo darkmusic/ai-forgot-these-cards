@@ -20,10 +20,6 @@ public class AiChat {
     @Column(name="answer", columnDefinition = "text")
     private String answer;
 
-    @JoinColumn(name = "aimodel_id", nullable = false)
-    @ManyToOne
-    private AiModel aiModel;
-
     @JoinColumn(name = "user_id", nullable = false)
     @ManyToOne
     private User user;

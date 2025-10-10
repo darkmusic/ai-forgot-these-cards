@@ -10,7 +10,6 @@ import java.util.Optional;
 public class UserDAOImpl implements UserDAO {
     private final EntityManager em;
 
-    @Autowired
     public UserDAOImpl(EntityManager em) {
         this.em = em;
     }

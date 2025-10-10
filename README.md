@@ -14,9 +14,9 @@ This project consists of two parts:
      - [Hibernate](https://hibernate.org/)
      - [Spring Security](https://spring.io/projects/spring-security)
      - [PostgreSQL](https://www.postgresql.org/)
-     - [Ollama](https://ollama.com/) for AI integration
+     - [Llama.cpp](https://github.com/ggml-org/llama.cpp) for AI integration
      - [Maven](https://maven.apache.org/)
-     - [Just](https://just.systems/) for build automation
+     - [GNU Make](https://www.gnu.org/software/make/) for build automation
 2. **Frontend**: [ai-forgot-this-frontend](https://github.com/darkmusic/ai-forgot-this-frontend)
     - Makes use of:
       - [React](https://react.dev/)
@@ -32,9 +32,7 @@ Features:
 - Admin management
 - Spring Security
 - User profiles
-- Ollama integration
-  - List models
-  - Add/pull model
+- Llama.cpp integration
   - Chat with a model
 - Deck management
 - Card management
@@ -48,7 +46,7 @@ Runtime Requirements:
 
 - Java Runtime, currently tested with Java 21 (GraalVM-21.0.8+12.1)
 - PostgreSQL - A PostgreSQL container must be up and running (see [compose.yaml](compose.yaml)), or another existing PostgreSQL server must be available
-- Ollama must be installed and running
+- Llama.cpp must be installed and running
 - Docker/Rancher Desktop/Podman/etc.
 
 ## Architecture
@@ -60,7 +58,7 @@ flowchart TD
     subgraph Backend
         A[Java Spring Boot Application]
         B[PostgreSQL Database]
-        C[Ollama AI Service]
+        C[Llama.cpp AI Service]
     end
 
     subgraph Frontend
@@ -69,7 +67,7 @@ flowchart TD
 
     D -->|HTTP Requests| A
     A -->|JPA/Hibernate| B
-    A -->|Ollama API Calls| C
+    A -->|Llama.cpp API Calls| C
 ```
 
 ### Container architecture
@@ -101,7 +99,7 @@ Here are some screenshots of the application:
    ![Deck Management](res/screenshots/manage_deck.png)
 5. **View Card**:
    ![View Card](res/screenshots/view_card.png)
-6. **Edit Card**:
+6. **Edit Card (With AI Assistance)**:
    ![Edit Card](res/screenshots/edit_card.png)
 7. **Create Card (With AI Assistance)**:
    ![Create Card](res/screenshots/create_card.png)
@@ -113,13 +111,11 @@ Here are some screenshots of the application:
     ![Admin Management](res/screenshots/admin_home.png)
 11. **Add User**:
     ![Add User](res/screenshots/add_user.png)
-12. **Add Model**:
-    ![Add Model](res/screenshots/add_model.png)
 
 ## General Remarks
 
 - This project is a work-in-progress and is intended for educational purposes only.
-- The AI integration is done using [Ollama](https://ollama.com/), which must be installed and running on your local machine. You can add models to Ollama and use them in the application.
+- The AI integration is done using [Llama.cpp](https://github.com/ggml-org/llama.cpp), which must be installed and running on your local machine. You will need to download a model in GGUF format, and point to this model when starting the Llama.cpp server. For example, if you have a model named `smollm2-135m.gguf`, you would start the server with the command `llama-server -m /path/to/smollm2-135m.gguf`.
 - The frontend is a submodule of this repository, so you will need to clone the frontend separately or initialize and update submodules after cloning this repo.
 - The application uses PostgreSQL as the database, and you can run it using Docker, Rancher Desktop, etc., with the provided `compose.yml` file. Alternatively, you can configure it to connect to an existing PostgreSQL server by commenting out the `db` service in `compose.yml` and updating the connection settings in `src/main/resources/application.properties`.
 - AI is provided as assistance, but should not be assumed to be factually correct, especially regarding the intricacies of grammar and language. Always review the AI-generated content before saving it to ensure accuracy and appropriateness for your use case.
@@ -129,31 +125,8 @@ Here are some screenshots of the application:
 
 To get started with the project, follow these steps:
 
-1. Download and install Ollama if needed, and run it via `ollama serve`."
-1. Install Just if needed.
-
-   ```powershell
-   brew install just
-   ```
-
-   or
-
-   ```powershell
-   scoop install just
-   ```
-
-   or
-
-   ```powershell
-   choco install just
-   ```
-
-    or
-
-    ```powershell
-   paru -S just
-   ```
-
+1. Download and install Llama.cpp if needed, and run it via `llama-server -m /path/to/model.gguf`. Note that if running this on a different machine, you will need to add the --host option to allow connections from other machines.
+1. Install Make if needed.
 1. If on Windows, add/edit .wslconfig in your user home folder with settings (adjust as needed for memory, etc.):
 
 ```bash
@@ -170,14 +143,13 @@ options = "metadata,umask=22,fmask=11" # To make windows disk access faster
 sparseVhd=true # To minimize wsl container disk image use
 ```
 
-1. Install Ollama and add at least one model (e.g., `llama2` or `smollm2:135m`).
-1. Make sure Ollama is running via `ollama serve`.
-1. Update the `spring.ai.ollama.base-url` property in `src/main/resources/application.properties` (default is `http://localhost:11434`, which will not work in the `app` container).
+1. Install Llama.cpp and download at least one model in GGUF format (e.g., `llama2` or `smollm2:135m`).
+1. Make sure Llama.cpp is running via `llama-server -m /path/to/model.gguf`.
+1. Update the `spring.ai.openai.chat.base-url` property in `src/main/resources/application.properties` (default is `http://localhost:8080`, which will _not_ work in the `app` container).
 1. Install Docker, Rancher Desktop, Podman, etc. if needed.
-1. Install [PowerShell](https://github.com/PowerShell/PowerShell) if needed, as this will be used for running Just commands.
 1. Clone the repository and initialize the submodules:
 
-   ```powershell
+   ```bash
    git clone https://github.com/darkmusic/ai-forgot-these-cards
    cd ai-forgot-these-cards
    git submodule update --init
@@ -189,33 +161,33 @@ sparseVhd=true # To minimize wsl container disk image use
 
 1. In src/dep/ai-forgot-this-frontend, run:
 
-   ```powershell
+   ```bash
    npm install
    ```
 
 1. If needed, install sass globally:
 
-   ```powershell
+   ```bash
    npm install -g sass
    ```
+
 1. Run the following command to compile the SCSS files:
 
-   ```powershell
-   just compile-scss
+   ```bash
+   make compile-scss
    ```
 
-1. Make sure your JAVA_HOME is set in `justfile` to the correct JDK location.   ```
+1. Make sure your JAVA_HOME is set in `Makefile` to the correct JDK location.   ```
 
 1. Customize the `docker-compose.yaml` file if needed, and then build and start the containers:
 
-   ```powershell
-   just build-deploy
+   ```bash
+   make build-deploy
    ```
 
 1. Open your web browser, navigate to [http://localhost:8086](http://localhost:8086), and log in with username "cards" and password "cards".
 1. Go to the "Admin" section and add a user with the role "USER".
 1. Change the "cards" admin user's password if needed.
-1. Add a model to Ollama using the admin interface (e.g., `llama2` or `smollm2:135m`).
 
 ## Exporting the database
 
@@ -226,8 +198,8 @@ Notes:
 1. This will first delete the existing backup, so back up the backup if you want to keep it.
 1. You will be required to enter the password when this runs.
 
-```powershell
-just export-db
+```bash
+make export-db
 ```
 
 ## Importing the database
@@ -237,8 +209,8 @@ Notes:
 1. This will drop the current database, so be sure you have exported it first!
 1. You will be required to enter the password when this runs.
 
-```powershell
-just import-db
+```bash
+make import-db
 ```
 
 ## Actuator Endpoints
@@ -252,6 +224,10 @@ just import-db
 - [X] Add template support for flashcards.
 - [X] Enable administrative exporting and importing of the database.
 - [X] Create docker-compose for app and website and move entire solution to containers.
+- [X] Transition from docker-compose to docker CLI commands.
+- [X] Transition to Llama.cpp instead of Ollama.
+- [X] Transition to GNU Make instead of Just.
+- [X] Transition from using Ollama Spring API to Spring AI OpenAI-compatible API.
 - [ ] Remove dependency on local building and build entirely inside containers.
 - [ ] Add swagger/openapi support for the REST API.
 - [ ] Add support for importing/exporting flashcards in different formats (e.g., CSV, YAML, TOML, Anki).

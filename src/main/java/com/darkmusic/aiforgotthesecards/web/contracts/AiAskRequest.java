@@ -7,7 +7,6 @@ import lombok.Setter;
 @Setter
 @Getter
 public class AiAskRequest {
-    private String model;
     private String question;
     private Long userId;
 }

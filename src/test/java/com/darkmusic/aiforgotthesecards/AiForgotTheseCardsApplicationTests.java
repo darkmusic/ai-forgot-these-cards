@@ -18,13 +18,4 @@ class AiForgotTheseCardsApplicationTests {
     @Test
     void contextLoads() {
     }
-
-    @Test
-    void canSyncModelsFromOllama() {
-        System.out.println("Testing Ollama sync");
-        var models = aiController.getAiModels();
-        for (var model : models) {
-            System.out.println(model);
-        }
-    }
 }
