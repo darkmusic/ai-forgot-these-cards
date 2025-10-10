@@ -23,7 +23,7 @@ public class AiController {
     public AiController(UserDAO userDAO, AiChatDAO aiChatDAO, ChatClient.Builder chatClientBuilder) {
         this.userDAO = userDAO;
         this.aiChatDAO = aiChatDAO;
-        this.chatClient = chatClientBuilder.defaultOptions(new OpenAiChatOptions()).build();;
+        this.chatClient = chatClientBuilder.defaultOptions(new OpenAiChatOptions()).build();
     }
 
     @PostMapping("/api/ai/chat")
