@@ -14,17 +14,13 @@ public class AiChatDAOTests {
     private AiChatDAO aiChatDAO;
 
     @Autowired
-    private AiModelDAO aiModelDAO;
-
-    @Autowired
     private UserDAO userDAO;
 
     @Autowired
     private ThemeDAO themeDAO;
 
-    static AiChat createAiChat(AiChatDAO aiChatDAO, AiModelDAO aiModelDAO, UserDAO userDAO, ThemeDAO themeDAO) {
+    static AiChat createAiChat(AiChatDAO aiChatDAO, UserDAO userDAO, ThemeDAO themeDAO) {
         var user = UserDAOTests.createUser(userDAO, themeDAO);
-        var aiModel = AiModelDAOTests.createAiModel(aiModelDAO);
         var aiChat = new AiChat();
         aiChat.setQuestion("Test Question " + System.currentTimeMillis());
         aiChat.setAnswer("Test Answer");

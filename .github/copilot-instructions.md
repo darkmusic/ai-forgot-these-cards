@@ -1,13 +1,13 @@
 # Copilot Instructions for ai-forgot-these-cards
 
-This repo is a containerized Spring Boot backend (WAR on Tomcat) plus a React/Vite SPA served by Nginx. The SPA calls the backend via /api, and the backend uses PostgreSQL (JPA/Hibernate) and Ollama via Spring AI.
+This repo is a containerized Spring Boot backend (WAR on Tomcat) plus a React/Vite SPA served by Nginx. The SPA calls the backend via /api, and the backend uses PostgreSQL (JPA/Hibernate) and Llama.cpp via OpenAI-compatible Spring AI.
 
 ## Architecture and flow
 - Frontend: `dep/ai-forgot-this-frontend` builds to `web/` (served by Nginx). SPA routes fall back to `index.html`.
 - Reverse proxy: `dockerfiles/web/nginx.conf` proxies `/api/*` to the app container at `http://app:8080` (note: no trailing slash on proxy_pass to keep the `/api` prefix).
 - Backend: Spring Boot 3.5, packaged as `war`, deployed by `dockerfiles/app/Dockerfile` into Tomcat. Security is configured in `AiForgotTheseCardsApplication.java`.
 - Data: PostgreSQL via JPA/Hibernate. Schema managed by `spring.jpa.hibernate.ddl-auto=update` (no Flyway/Liquibase).
-- AI: Spring AI Ollama client used in `web/controller/AiController.java`.
+- AI: Spring AI chat client used in `web/controller/AiController.java`.
 
 Key paths:
 - Backend code: `src/main/java/com/darkmusic/aiforgotthesecards/**`
@@ -34,7 +34,7 @@ Notes on scripts/compose naming:
 
 ## REST/API patterns
 - Controllers under `web/controller` expose JSON endpoints, e.g.:
-  - AI: `GET /api/ai/models` (syncs from Ollama) and `POST /api/ai/ask` with body `{ model, question, userId }` -> `{ answer }`.
+  - AI: `POST /api/ai/chat` with body `{ model, question, userId }` -> `{ answer }`.
   - Users: `GET /api/current-user`, `GET /api/user/{id}`, admin-only `POST/DELETE /api/user`.
   - Decks/Tags/Cards follow `/api/{resource}/...` with typical CRUD.
 - For new endpoints:
@@ -45,12 +45,10 @@ Notes on scripts/compose naming:
 - Entities in `business/entities` use Lombok and JPA annotations. Example: `User` maps to table name "`user`" to avoid reserved word issues.
 - DAO pattern: each entity has a `*DAO` interface (extends `CrudRepository`) plus a manual `*DAOImpl` using `EntityManager` for queries (e.g., `DeckDAOImpl`). Prefer adding typed queries there.
 
-## Ollama integration
-- `AiController` uses `org.springframework.ai.ollama.api.OllamaApi`:
-  - `GET /api/ai/models` lists models and syncs to `AiModel` table.
-  - `GET /api/ai/model/pull?modelName=...` streams progress as `Flux`.
-  - `POST /api/ai/ask` sends a single user message and persists Q/A to `AiChat`.
-- Base URL configured via `spring.ai.ollama.base-url` (defaults to `http://localhost:11434`). Ensure `ollama serve` is running.
+## Llama.cpp integration
+- `AiController` uses `org.springframework.ai.chat.client.ChatClient`:
+  - `POST /api/ai/chat` sends a single user message and persists Q/A to `AiChat`.
+- Base URL configured via `spring.ai.openai.chat.base-url` (defaults to `http://localhost:8080/v1`). Ensure `llama-server -m <model path>` is running.
 
 ## Testing and profiles
 - Unit tests via Surefire (`mvn test`), includes `**/*Test*.java`.
@@ -61,6 +59,9 @@ Notes on scripts/compose naming:
 - Just recipes require `pwsh` even on Linux/macOS. If unavailable, run Maven/compose commands manually.
 - The compose `db` service name must match JDBC URL host in `application.properties` (currently `jdbc:postgresql://db:5432/cards`).
 
+## Frontend notes
+- Avoid creating inline styles; instead add styles to scss files and reference them.
+
 ## Common tasks
 - Add a new API endpoint
   1) Create a DTO in `web/contracts` if needed.
@@ -70,7 +71,7 @@ Notes on scripts/compose naming:
   5) Frontend: call via `apiFetch` in `dep/.../src/lib/api.ts` (ensure `primeCsrf()` for unsafe methods) and wire to a component.
 
 - Persist AI interactions
-  1) Use `OllamaApi` in `AiController` to call the model.
+  1) Use `ChatClient` in `AiController` to call the model.
   2) Save Q/A to `AiChat` using `AiChatDAO` as shown in `POST /api/ai/ask`.
 
 - Build and redeploy the stack
