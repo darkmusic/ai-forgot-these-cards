@@ -125,7 +125,7 @@ Here are some screenshots of the application:
 
 To get started with the project, follow these steps:
 
-1. Download and install Llama.cpp if needed, and run it via `llama-server -m /path/to/model.gguf`. Note that if running this on a different machine, you will need to add the --host option to allow connections from other machines.
+1. Download and install Llama.cpp if needed, and run it via `llama-server -m /path/to/model.gguf --port 8087`. Note that if running this on a different machine, you will need to add the --host option to allow connections from other machines.
 1. Install Make if needed.
 1. If on Windows, add/edit .wslconfig in your user home folder with settings (adjust as needed for memory, etc.):
 
@@ -144,8 +144,8 @@ sparseVhd=true # To minimize wsl container disk image use
 ```
 
 1. Install Llama.cpp and download at least one model in GGUF format (e.g., `llama2` or `smollm2:135m`).
-1. Make sure Llama.cpp is running via `llama-server -m /path/to/model.gguf`.
-1. Update the `spring.ai.openai.chat.base-url` property in `src/main/resources/application.properties` (default is `http://localhost:8080`, which will _not_ work in the `app` container).
+1. Make sure Llama.cpp is running via `llama-server -m /path/to/model.gguf --port 8087` (add --host if needed).
+1. Update the `spring.ai.openai.chat.base-url` property in `src/main/resources/application.properties` (default is `http://localhost:8087`, which will _not_ work in the `app` container).
 1. Install Docker, Rancher Desktop, Podman, etc. if needed.
 1. Clone the repository and initialize the submodules:
 
