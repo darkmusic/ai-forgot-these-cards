@@ -59,6 +59,9 @@ Notes on scripts/compose naming:
 - Just recipes require `pwsh` even on Linux/macOS. If unavailable, run Maven/compose commands manually.
 - The compose `db` service name must match JDBC URL host in `application.properties` (currently `jdbc:postgresql://db:5432/cards`).
 
+## Frontend notes
+- Avoid creating inline styles; instead add styles to scss files and reference them.
+
 ## Common tasks
 - Add a new API endpoint
   1) Create a DTO in `web/contracts` if needed.
