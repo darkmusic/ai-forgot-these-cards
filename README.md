@@ -18,12 +18,12 @@ This project consists of two parts:
      - [Maven](https://maven.apache.org/)
      - [GNU Make](https://www.gnu.org/software/make/) for build automation
 2. **Frontend**: [ai-forgot-this-frontend](https://github.com/darkmusic/ai-forgot-this-frontend)
-    - Makes use of:
-      - [React](https://react.dev/)
-      - [TypeScript](https://www.typescriptlang.org/)
-      - [Sass](https://sass-lang.com/) for styling
-      - [Vite](https://vite.dev/)
-      - [Just](https://just.systems/) for build automation
+   - Makes use of:
+     - [React](https://react.dev/)
+     - [TypeScript](https://www.typescriptlang.org/)
+     - [Sass](https://sass-lang.com/) for styling
+     - [Vite](https://vite.dev/)
+     - [GNU Make](https://www.gnu.org/software/make/) for build automation
 
 Features:
 
@@ -86,7 +86,6 @@ flowchart TD
     B -->|REST API calls| A
     A -->|Database calls| C
 ```
-
 
 ## Screenshots
 
@@ -198,16 +197,16 @@ make import-db
 
 ## Roadmap
 
-- [X] Add theme support, and enable switching between themes.
-- [X] Add formatting for flashcards (e.g., Markdown support).
-- [X] Add template support for flashcards.
-- [X] Enable administrative exporting and importing of the database.
-- [X] Create docker-compose for app and website and move entire solution to containers.
-- [X] Transition from docker-compose to docker CLI commands.
-- [X] Transition to Llama.cpp instead of Ollama.
-- [X] Transition to GNU Make instead of Just.
-- [X] Transition from using Ollama Spring API to Spring AI OpenAI-compatible API.
-- [X] Remove dependency on local building and build entirely inside containers.
+- [x] Add theme support, and enable switching between themes.
+- [x] Add formatting for flashcards (e.g., Markdown support).
+- [x] Add template support for flashcards.
+- [x] Enable administrative exporting and importing of the database.
+- [x] Create docker-compose for app and website and move entire solution to containers.
+- [x] Transition from docker-compose to docker CLI commands.
+- [x] Transition to Llama.cpp instead of Ollama.
+- [x] Transition to GNU Make instead of Just.
+- [x] Transition from using Ollama Spring API to Spring AI OpenAI-compatible API.
+- [x] Remove dependency on local building and build entirely inside containers.
 - [ ] Add swagger/openapi support for the REST API.
 - [ ] Add support for importing/exporting flashcards in different formats (e.g., CSV, YAML, TOML, Anki).
 - [ ] Add profile picture upload support.
