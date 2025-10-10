@@ -127,25 +127,25 @@ Here are some screenshots of the application:
 
 To get started with the project, follow these steps:
 
-1. Download and install Llama.cpp if needed, and run it via `llama-server -m /path/to/model.gguf --port 8087`. Note that if running this on a different machine, you will need to add the --host option to allow connections from other machines.
 1. Install Make if needed.
 1. If on Windows, add/edit .wslconfig in your user home folder with settings (adjust as needed for memory, etc.):
 
-```bash
-[wsl2]
-memory=16GB # Limits VM memory in WSL 2
-processors=2 # Makes the WSL 2 VM use this many virtual processors
-networkingMode=mirrored # Required to resolve an issue with Podman
-autoMemoryReclaim=gradual # To optimize memory reclaimation
+      ```bash
+      [wsl2]
+      memory=16GB # Limits VM memory in WSL 2
+      processors=2 # Makes the WSL 2 VM use this many virtual processors
+      networkingMode=mirrored # Required to resolve an issue with Podman
+      autoMemoryReclaim=gradual # To optimize memory reclaimation
 
-[automount]
-options = "metadata,umask=22,fmask=11" # To make windows disk access faster
+      [automount]
+      options = "metadata,umask=22,fmask=11" # To make windows disk access faster
 
-[experimental]
-sparseVhd=true # To minimize wsl container disk image use
-```
+      [experimental]
+      sparseVhd=true # To minimize wsl container disk image use
+    ```
 
 1. Install Llama.cpp and download at least one model in GGUF format (e.g., `llama2` or `smollm2:135m`).
+    1. Note that Llama.cpp can also be manually built if desired, and is included as a submodule in `dep/llama.cpp` for convenience.
 1. Make sure Llama.cpp is running via `llama-server -m /path/to/model.gguf --port 8087` (add --host if needed).
 1. Update the `spring.ai.openai.chat.base-url` property in `src/main/resources/application.properties` to a URL reachable from inside the `app` container (default may be `http://host.docker.internal:8087` or the LAN IP of your host, depending on your platform).
 1. Install Docker, Rancher Desktop, Podman, etc. if needed.
@@ -157,7 +157,7 @@ sparseVhd=true # To minimize wsl container disk image use
    git submodule update --init
    ```
 
-1. No local toolchain needed. Build and start the containers (this compiles the backend WAR and the frontend SPA inside Docker images):
+1. Build and start the containers (this compiles the backend WAR and the frontend SPA inside Docker images):
 
    ```bash
    make build-deploy
