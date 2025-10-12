@@ -165,7 +165,7 @@ nexus-up:
 	@echo "UI: http://localhost:8081"
 
 nexus-status:
-	@docker ps -a --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}' | grep -E "^(NAME|$(NEXUS_DATA_CONTAINER)|$(NEXUS_CONTAINER))"
+	@docker ps -a --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}' | grep -E "^(NAME|$(NEXUS_CONTAINER))"
 
 nexus-logs:
 	@docker logs -f "$(NEXUS_CONTAINER)"
