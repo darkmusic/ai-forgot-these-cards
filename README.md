@@ -52,6 +52,8 @@ Notes:
 
 - You do not need to install JDK, Maven, or Node.js to build/run. All compilation happens inside Docker images via multi-stage builds.
 
+Tip: You can speed up Docker builds by enabling an optional local Maven cache via Sonatype Nexus 3. See "Optional: Maven dependency cache (Nexus)" below.
+
 ## Architecture
 
 ### Application architecture
@@ -128,6 +130,7 @@ Here are some screenshots of the application:
 To get started with the project, follow these steps:
 
 1. Install Make if needed.
+1. Copy `.env.example` to `.env` and customize as needed.
 1. If on Windows, add/edit .wslconfig in your user home folder with settings (adjust as needed for memory, etc.):
 
       ```bash
@@ -147,7 +150,7 @@ To get started with the project, follow these steps:
 1. Install Llama.cpp and download at least one model in GGUF format (e.g., `llama2` or `smollm2:135m`).
     1. Note that Llama.cpp can also be manually built if desired, and is included as a submodule in `dep/llama.cpp` for convenience.
 1. Make sure Llama.cpp is running via `llama-server -m /path/to/model.gguf --port 8087` (add --host if needed).
-1. Update the `spring.ai.openai.chat.base-url` property in `src/main/resources/application.properties` to a URL reachable from inside the `app` container (default may be `http://host.docker.internal:8087` or the LAN IP of your host, depending on your platform).
+1. Update the `LLAMACPP_URL` setting in `.env` to a URL reachable from inside the `app` container (default may be `http://host.docker.internal:8087` or the LAN IP of your host, depending on your platform).
 1. Install Docker, Rancher Desktop, Podman, etc. if needed.
 1. Clone the repository and initialize the submodules:
 
@@ -166,6 +169,42 @@ To get started with the project, follow these steps:
 1. Open your web browser, navigate to [http://localhost:8086](http://localhost:8086), and log in with username "cards" and password "cards".
 1. Go to the "Admin" section and add a user with the role "USER".
 1. Change the "cards" admin user's password if needed.
+
+### Optional: Maven dependency cache (Nexus)
+
+To avoid re-downloading Maven dependencies on every image build, you can run a local Sonatype Nexus repository and point Maven to it during Docker builds.
+
+Start Nexus 3 (runs independently and is not affected by other Makefile targets):
+
+```bash
+make nexus-up
+make nexus-status   # optional
+make nexus-logs     # optional: tail logs until ready
+```
+
+Enable the cache for app builds by setting an environment variable when building:
+
+```bash
+USE_NEXUS=1 make build-deploy
+```
+
+Details:
+
+- When `USE_NEXUS=1` is set, the backend Docker build injects a Maven mirror into the builder image, using `NEXUS_MIRROR_URL` (defaults to Nexus 3's maven-public group at `http://host.docker.internal:8081/repository/maven-public`).
+- If you would like to create a custom group named `maven-group`, create it in the Nexus UI, and then set `USE_NEXUS` and `NEXUS_MIRROR_URL` in `.env` before building.
+
+- The Nexus container remains running at all times and is not stopped by `make down` or other targets. To stop or remove it explicitly, use:
+
+   ```bash
+   make nexus-down
+   ```
+
+- Note that you may also host a Nexus instance on another machine or server, and point to that by setting `NEXUS_MIRROR_URL` in `.env`.
+
+Troubleshooting:
+
+- It can take 1–2 minutes for Nexus to become fully ready on first run. If builds fail to reach the mirror, retry after Nexus is up.
+- On Linux, the build uses `host.docker.internal` via Docker's `--add-host=host.docker.internal:host-gateway` to reach the host. If your Docker version doesn't support `host-gateway`, replace `host.docker.internal` with your host IP in `NEXUS_MIRROR_URL`.
 
 ## Exporting the database
 
@@ -207,7 +246,8 @@ make import-db
 - [x] Transition to GNU Make instead of Just.
 - [x] Transition from using Ollama Spring API to Spring AI OpenAI-compatible API.
 - [x] Remove dependency on local building and build entirely inside containers.
-- [ ] Create .env file support for configuration.
+- [x] Create .env file support for configuration.
+- [x] Add Maven dependency caching via Sonatype Nexus 3.
 - [ ] Add swagger/openapi support for the REST API.
 - [ ] Add support for importing/exporting flashcards in different formats (e.g., CSV, YAML, TOML, Anki).
 - [ ] Add profile picture upload support.

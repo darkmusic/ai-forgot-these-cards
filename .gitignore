@@ -38,3 +38,4 @@ src/main/webapp/
 /db
 /web
 notes.txt
+.env
