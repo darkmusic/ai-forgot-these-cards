@@ -17,6 +17,7 @@ This project consists of two parts:
      - [Llama.cpp](https://github.com/ggml-org/llama.cpp) for AI integration
      - [Maven](https://maven.apache.org/)
      - [GNU Make](https://www.gnu.org/software/make/) for build automation
+     - [Sonatype Nexus](https://www.sonatype.com/products/repository-oss) for optional Maven dependency caching
 2. **Frontend**: [ai-forgot-this-frontend](https://github.com/darkmusic/ai-forgot-this-frontend)
    - Makes use of:
      - [React](https://react.dev/)
@@ -31,6 +32,7 @@ Features:
 - User management
 - Admin management
 - Spring Security
+- Optional Maven dependency caching
 - User profiles
 - Llama.cpp integration
   - Chat with a model
@@ -64,6 +66,7 @@ flowchart TD
         A[Java Spring Boot Application]
         B[PostgreSQL Database]
         C[Llama.cpp AI Service]
+        E[Sonatype Nexus]
     end
 
     subgraph Frontend
@@ -73,6 +76,7 @@ flowchart TD
     D -->|HTTP Requests| A
     A -->|JPA/Hibernate| B
     A -->|Llama.cpp API Calls| C
+    A -->|Maven Package Requests| E
 ```
 
 ### Container architecture
@@ -83,10 +87,12 @@ flowchart TD
         A[Tomcat/Spring Backend]
         B[Nginx/React Frontend]
         C[PostgreSQL DB]
+        D[Sonatype Nexus]
     end
 
     B -->|REST API calls| A
     A -->|Database calls| C
+    A -->|Maven package requests| D
 ```
 
 ## Screenshots
