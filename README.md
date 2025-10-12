@@ -188,10 +188,10 @@ make nexus-status   # optional
 make nexus-logs     # optional: tail logs until ready
 ```
 
-Enable the cache for app builds by setting an environment variable when building:
+Enable the cache for app builds by setting an environment variable in `.env` before building:
 
 ```bash
-USE_NEXUS=1 make build-deploy
+USE_NEXUS=1
 ```
 
 Details:
