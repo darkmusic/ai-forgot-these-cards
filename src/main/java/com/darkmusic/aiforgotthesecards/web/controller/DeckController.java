@@ -39,10 +39,11 @@ public class DeckController {
     }
 
     @PutMapping("/api/deck/{id}")
-    public void saveDeck(@PathVariable long id, @RequestBody Deck deck) {
+    public Deck saveDeck(@PathVariable long id, @RequestBody Deck deck) {
         if (deckDAO.findById(id).isPresent()) {
-            deckDAO.save(deck);
+            return deckDAO.save(deck);
         }
+        return null;
     }
 
     @DeleteMapping("/api/deck/{id}")

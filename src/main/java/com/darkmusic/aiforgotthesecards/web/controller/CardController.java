@@ -51,10 +51,11 @@ public class CardController {
     }
 
     @PutMapping("/api/card/{id}")
-    public void saveCard(@PathVariable long id, @RequestBody Card card) {
+    public Card saveCard(@PathVariable long id, @RequestBody Card card) {
         if (cardDAO.findById(id).isPresent()) {
-            cardDAO.save(card);
+            return cardDAO.save(card);
         }
+        return null;
     }
 
     @DeleteMapping("/api/card/{id}")

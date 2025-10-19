@@ -130,6 +130,7 @@ Here are some screenshots of the application:
 - The application uses PostgreSQL as the database, and you can run it using Docker, Rancher Desktop, etc.. Alternatively, you can configure it to connect to an existing PostgreSQL server by updating the connection settings in `src/main/resources/application.properties`.
 - AI is provided as assistance, but should not be assumed to be factually correct, especially regarding the intricacies of grammar and language. Always review the AI-generated content before saving it to ensure accuracy and appropriateness for your use case.
 - Different models may provide different results, and the output quality will depend on the model used and the input provided.
+- The loading of tensors by Llama.cpp can be slow, especially for larger models. Be patient while the model is loading.
 
 ## Getting Started
 
@@ -154,7 +155,7 @@ To get started with the project, follow these steps:
     ```
 
 1. Install Llama.cpp and download at least one model in GGUF format (e.g., `llama2` or `smollm2:135m`).
-    1. Note that Llama.cpp can also be manually built if desired, and is included as a submodule in `dep/llama.cpp` for convenience.
+    1. Note that Llama.cpp can also be manually built if desired, and is included as a submodule in `dep/llama.cpp` for convenience (note that you may wish to do a `git pull` inside the submodule directory to ensure you have the latest, as rapid development within llamacpp will quickly cause the submodule to become out of date).
 1. Make sure Llama.cpp is running via `llama-server -m /path/to/model.gguf --port 8087` (add --host if needed).
 1. Update the `LLAMACPP_URL` setting in `.env` to a URL reachable from inside the `app` container (default may be `http://host.docker.internal:8087` or the LAN IP of your host, depending on your platform).
 1. Install Docker, Rancher Desktop, Podman, etc. if needed.

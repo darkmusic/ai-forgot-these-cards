@@ -30,10 +30,11 @@ public class UserController {
     }
 
     @PutMapping("/api/user/{id}")
-    public void saveUser(@PathVariable long id, @RequestBody User user) {
+    public User saveUser(@PathVariable long id, @RequestBody User user) {
         if (userDAO.findById(id).isPresent()) {
-            userDAO.save(user);
+            return userDAO.save(user);
         }
+        return null;
     }
 
     @GetMapping("/api/user/{id}")

@@ -95,6 +95,7 @@ up:
 	@# ensure network and volume
 	@docker network inspect "$(DOCKER_NETWORK)" >/dev/null 2>&1 || docker network create "$(DOCKER_NETWORK)"
 	@docker volume inspect "$(DB_VOLUME)" >/dev/null 2>&1 || docker volume create "$(DB_VOLUME)" >/dev/null
+
 	@# db: create or start
 	@if ! docker ps -a --format '{{.Names}}' | grep -qx "$(DB_CONTAINER)"; then \
 		docker run -d --name "$(DB_CONTAINER)" --network "$(DOCKER_NETWORK)" -p "5433:5432" \
@@ -103,6 +104,7 @@ up:
 	else \
 		if ! docker ps --format '{{.Names}}' | grep -qx "$(DB_CONTAINER)"; then docker start "$(DB_CONTAINER)"; fi; \
 	fi
+
 	@# app: create or start
 	@if ! docker ps -a --format '{{.Names}}' | grep -qx "$(APP_CONTAINER)"; then \
 		docker run -d --name "$(APP_CONTAINER)" --network "$(DOCKER_NETWORK)" -p "8080:8080" -p "9090:9090" \
@@ -110,6 +112,7 @@ up:
 	else \
 		if ! docker ps --format '{{.Names}}' | grep -qx "$(APP_CONTAINER)"; then docker start "$(APP_CONTAINER)"; fi; \
 	fi
+
 	@# web: create or start
 	@if ! docker ps -a --format '{{.Names}}' | grep -qx "$(WEB_CONTAINER)"; then \
 		docker run -d --name "$(WEB_CONTAINER)" --network "$(DOCKER_NETWORK)" -p "8086:80" --env-file .env \
@@ -124,6 +127,9 @@ down:
 	@if docker ps -a --format '{{.Names}}' | grep -qx "$(DB_CONTAINER)"; then docker rm -f "$(DB_CONTAINER)"; fi
 
 restart: down up
+
+stop:
+	@docker stop "$(WEB_CONTAINER)" "$(APP_CONTAINER)" "$(DB_CONTAINER)"
 
 build-deploy: build up
 	@if docker ps -a --format '{{.Names}}' | grep -qx "$(APP_CONTAINER)"; then docker rm -f "$(APP_CONTAINER)"; fi
@@ -190,6 +196,7 @@ help:
 	@echo "  build                     - Build both application and web Docker images."
 	@echo "  up                        - Start the application, database, and web containers."
 	@echo "  down                      - Stop and remove the application, database, and web containers."
+	@echo "  stop                      - Stop the application, database, and web containers."
 	@echo "  restart                   - Restart the application, database, and web containers."
 	@echo "  build-deploy              - Build images and deploy the application container."
 	@echo "  delete-redeploy           - Delete containers and volumes, then rebuild and redeploy."
@@ -200,3 +207,20 @@ help:
 	@echo "  nexus-status              - Show status of Nexus containers."
 	@echo "  nexus-logs                - Tail Nexus logs."
 	@echo "  nexus-down                - Stop and remove Nexus containers (not called by any other target)."
+	@echo "  build-llamacpp-cpu        - Build the llama.cpp CPU server."
+	@echo "  start-llamacpp            - Start the llama.cpp server with specified model and port."
+
+#######################################################################
+# Llamacpp Commands
+#######################################################################
+
+.PHONY: build-llamacpp-cpu
+build-llamacpp-cpu:
+	@echo "Building llama.cpp CPU server..."
+	cd dep/llama.cpp && \
+		 cmake -B build && \
+		 cmake --build build --config Release
+
+.PHONY: start-llamacpp
+start-llamacpp:
+	@./dep/llama.cpp/build/bin/llama-server --model $(LLAMA_MODEL_PATH) --port $(LLAMACPP_PORT) --host 0.0.0.0
