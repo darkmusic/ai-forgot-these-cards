@@ -14,7 +14,7 @@ DB_VOLUME := pgdata
 # Load optional environment overrides from .env (if present)
 ifneq (,$(wildcard .env))
 include .env
-export USE_NEXUS NEXUS_MIRROR_URL
+export USE_NEXUS NEXUS_MIRROR_URL POSTGRES_USER POSTGRES_DB
 endif
 
 # Optional Maven cache via Nexus (disabled by default)
@@ -59,17 +59,12 @@ drop-and-recreate-db:
 export-db:
 	@mkdir -p db
 	@docker exec -t "$(DB_CONTAINER)" sh -lc 'rm -f /tmp/backup.sql'
-	@DB_USER="$$(grep -E "^spring\.datasource\.username=" ./src/main/resources/application.properties | head -n1 | cut -d= -f2 | xargs)"; \
-	DB_NAME="$$(grep -E "^spring\.datasource\.url=" ./src/main/resources/application.properties | head -n1 | sed -E "s#.*//[^/]+/([^?]+).*#\1#")"; \
-	docker exec -it "$(DB_CONTAINER)" sh -lc "pg_dump -h localhost -U \"$$DB_USER\" -W -F c -b -v -f /tmp/backup.sql \"$$DB_NAME\""
+	@docker exec -it "$(DB_CONTAINER)" sh -lc "pg_dump -h localhost -U \"$(POSTGRES_USER)\" -W -F c -b -v -f /tmp/backup.sql \"$(POSTGRES_DB)\""
 	@rm -f db/backup.sql
 	@docker cp "$(DB_CONTAINER):/tmp/backup.sql" "db/backup.sql"
-
 import-db: drop-and-recreate-db
 	@docker cp "db/backup.sql" "$(DB_CONTAINER):/tmp/backup.sql"
-	@DB_USER="$$(grep -E "^spring\.datasource\.username=" ./src/main/resources/application.properties | head -n1 | cut -d= -f2 | xargs)"; \
-	DB_NAME="$$(grep -E "^spring\.datasource\.url=" ./src/main/resources/application.properties | head -n1 | sed -E "s#.*//[^/]+/([^?]+).*#\1#")"; \
-	docker exec -it "$(DB_CONTAINER)" sh -lc "pg_restore -h localhost -U \"$$DB_USER\" -W -F c -v -d \"$$DB_NAME\" /tmp/backup.sql"
+	@docker exec -it "$(DB_CONTAINER)" sh -lc "pg_restore -h localhost -U \"$(POSTGRES_USER)\" -W -F c -v -d \"$(POSTGRES_DB)\" /tmp/backup.sql"
 
 #######################################################################
 # Docker Commands (no docker compose)
