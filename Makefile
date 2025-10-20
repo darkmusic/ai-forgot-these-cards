@@ -62,6 +62,7 @@ export-db:
 	@docker exec -it "$(DB_CONTAINER)" sh -lc "pg_dump -h localhost -U \"$(POSTGRES_USER)\" -W -F c -b -v -f /tmp/backup.sql \"$(POSTGRES_DB)\""
 	@rm -f db/backup.sql
 	@docker cp "$(DB_CONTAINER):/tmp/backup.sql" "db/backup.sql"
+
 import-db: drop-and-recreate-db
 	@docker cp "db/backup.sql" "$(DB_CONTAINER):/tmp/backup.sql"
 	@docker exec -it "$(DB_CONTAINER)" sh -lc "pg_restore -h localhost -U \"$(POSTGRES_USER)\" -W -F c -v -d \"$(POSTGRES_DB)\" /tmp/backup.sql"

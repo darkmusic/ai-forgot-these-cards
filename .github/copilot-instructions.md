@@ -13,17 +13,19 @@ Key paths:
 - Backend code: `src/main/java/com/darkmusic/aiforgotthesecards/**`
 - REST controllers: `web/controller/*.java`; DTOs: `web/contracts/*.java`
 - Entities/DAOs: `business/entities/*.java`, `business/entities/repositories/*`
-- Docker compose stack: `docker-compose.yml` (services: db, app, web)
+- Docker containers: `db`, `app`, `web` (managed via Makefile, not docker-compose)
 
 ## Build and run
-- Containerized: run the Just target that builds the backend, bundles the SPA, and starts the stack:
-  - `just build-deploy` (requires PowerShell Core `pwsh`; Justfile sets `set shell := ["pwsh", "-c"]`).
+- Containerized: run Make targets that build the backend, bundle the SPA, and start containers:
+  - `make build-deploy` – builds both Docker images and deploys the app container.
   - Open http://localhost:8086 (Nginx). App is on http://localhost:8080.
-- Backend only (local): `./mvnw spring-boot:run` (ensure Postgres is up, e.g., `docker compose up -d db`).
+- Backend only (local): `./mvnw spring-boot:run` (ensure Postgres is up, e.g., `make up` to start db container).
 - Frontend dev: in `dep/ai-forgot-this-frontend`, run `npm install`, then `npm run dev` for Vite. Production build is driven by Maven via `frontend-maven-plugin` (Node v23.6.1, npm 10.9.2) running `build:dev` then `deploy` (copies to `../../web`).
 
-Notes on scripts/compose naming:
-- Compose services are `db`, `app`, `web`. Just recipes target the `db` service for export/import and lifecycle tasks.
+Notes on container naming:
+- Containers are `db`, `app`, `web`. Network is `cards-net`. DB volume is `pgdata`.
+- Make targets use plain `docker run` commands, not docker-compose.
+- Optional `.env` file for environment overrides (e.g., `POSTGRES_USER`, `POSTGRES_DB`, `USE_NEXUS`, `NEXUS_MIRROR_URL`).
 
 ## Security, auth, and CSRF
 - SecurityFilterChain in `AiForgotTheseCardsApplication.java`:
@@ -48,7 +50,10 @@ Notes on scripts/compose naming:
 ## Llama.cpp integration
 - `AiController` uses `org.springframework.ai.chat.client.ChatClient`:
   - `POST /api/ai/chat` sends a single user message and persists Q/A to `AiChat`.
-- Base URL configured via `spring.ai.openai.chat.base-url` (defaults to `http://localhost:8080/v1`). Ensure `llama-server -m <model path>` is running.
+- Base URL configured via `spring.ai.openai.chat.base-url` (defaults to `http://localhost:8080/v1`). Ensure llama-server is running (see `make build-llamacpp-cpu` and `make start-llamacpp`).
+  **Note:** By default, the backend uses port 8080; to avoid conflicts, run llama-server on a different port (e.g., 8087) and update the base URL accordingly.
+  Note: `make start-llamacpp` requires the parameters `LLAMA_MODEL_PATH` and `LLAMACPP_PORT`, e.g.
+  `make start-llamacpp LLAMA_MODEL_PATH=/path/to/model.gguf LLAMACPP_PORT=8080`
 
 ## Testing and profiles
 - Unit tests via Surefire (`mvn test`), includes `**/*Test*.java`.
@@ -56,31 +61,55 @@ Notes on scripts/compose naming:
 
 ## Gotchas
 - Keep Nginx `proxy_pass` for `/api/` without trailing slash to preserve the `/api` prefix.
-- Just recipes require `pwsh` even on Linux/macOS. If unavailable, run Maven/compose commands manually.
-- The compose `db` service name must match JDBC URL host in `application.properties` (currently `jdbc:postgresql://db:5432/cards`).
+- The `db` container name must match host portion of the JDBC URL configured in the `.env` file with setting name DB_URL.
+- DB container publishes PostgreSQL on port 5433 (host) → 5432 (container) to avoid conflicts.
 
 ## Frontend notes
 - Avoid creating inline styles; instead add styles to scss files and reference them.
 
 ## Common tasks
-- Add a new API endpoint
-  1) Create a DTO in `web/contracts` if needed.
-  2) Add a `@RestController` under `web/controller` and expose `/api/...` routes.
-  3) Use DAOs in `business/entities/repositories` (prefer adding queries in `*DAOImpl` with `EntityManager`).
-  4) Security: endpoints under `/api/**` are authenticated by default; use `@Secured("ROLE_ADMIN")` for admin-only.
-  5) Frontend: call via `apiFetch` in `dep/.../src/lib/api.ts` (ensure `primeCsrf()` for unsafe methods) and wire to a component.
 
-- Persist AI interactions
-  1) Use `ChatClient` in `AiController` to call the model.
-  2) Save Q/A to `AiChat` using `AiChatDAO` as shown in `POST /api/ai/ask`.
+### Build and deployment
+- **Build images**: `make build` – builds both `app` and `web` Docker images.
+- **Start containers**: `make up` – starts `db`, `app`, `web` (creates if needed, otherwise starts existing).
+- **Stop containers**: `make down` – removes all containers (keeps volumes).
+- **Stop without removing**: `make stop` – stops containers without removing them.
+- **Restart**: `make restart` – equivalent to `make down up`.
+- **Build and deploy**: `make build-deploy` – builds images, starts stack, and redeploys the app container.
+- **Clean rebuild**: `make delete-redeploy` – removes containers and volumes, rebuilds, and starts fresh.
+- **Clean rebuild + watch logs**: `make redeploy-watch` – does a full clean rebuild and tails Tomcat logs.
 
-- Build and redeploy the stack
-  - `just build-deploy` to rebuild backend, build SPA, and start `db`,`app`,`web`.
-  - `just redeploy-watch` to do a clean rebuild and tail app logs.
+### Database operations (requires password prompt)
+- **Export**: `make export-db` – dumps database to `db/backup.sql`.
+- **Import**: `make import-db` – drops/recreates database and restores from `db/backup.sql`.
+- **Drop and recreate**: `make drop-and-recreate-db` – removes container and volume, recreates fresh database.
 
-- Export/import the database (requires password prompt)
-  - Export: `just export-db` -> writes `db/backup.sql`.
-  - Import: `just import-db` -> drops/recreates and restores from `db/backup.sql`.
+### Maven dependency caching (optional Nexus)
+- **Start Nexus**: `make nexus-up` – starts Sonatype Nexus 3 on port 8081 with persistent volume.
+- **Enable caching**: Set `USE_NEXUS=1` in `.env` (or export in shell). Default mirror URL is `http://host.docker.internal:8081/repository/maven-public`.
+- **Check status**: `make nexus-status` – shows Nexus container status.
+- **View logs**: `make nexus-logs` – tails Nexus logs.
+- **Stop Nexus**: `make nexus-down` – removes Nexus container (never called by other targets).
+
+Note: Nexus targets are independent; other Make targets never start or stop Nexus.
+
+- **Start server**: `make start-llamacpp LLAMA_MODEL_PATH=/path/to/model.gguf LLAMACPP_PORT=8087` – runs llama-server on specified port (avoid using 8080 to prevent conflict with backend).
+- **Build CPU server**: `make build-llamacpp-cpu` – compiles llama.cpp in `dep/llama.cpp/build`.
+- **Start server**: `make start-llamacpp LLAMA_MODEL_PATH=/path/to/model.gguf LLAMACPP_PORT=8080` – runs llama-server on specified port.
+
+### Debugging
+- **Tail app logs**: `make tail-tomcat-logs` – follows logs from the `app` container.
+
+### Add a new API endpoint
+1) Create a DTO in `web/contracts` if needed.
+2) Add a `@RestController` under `web/controller` and expose `/api/...` routes.
+3) Use DAOs in `business/entities/repositories` (prefer adding queries in `*DAOImpl` with `EntityManager`).
+4) Security: endpoints under `/api/**` are authenticated by default; use `@Secured("ROLE_ADMIN")` for admin-only.
+5) Frontend: call via `apiFetch` in `dep/.../src/lib/api.ts` (ensure `primeCsrf()` for unsafe methods) and wire to a component.
+
+### Persist AI interactions
+1) Use `ChatClient` in `AiController` to call the model.
+2) Save Q/A to `AiChat` using `AiChatDAO` as shown in `POST /api/ai/chat`.
 
 ### Example: add a Deck search endpoint (end-to-end)
 1) DAO method (add to `business/entities/repositories/DeckDAO.java` and implement in `DeckDAOImpl`):
