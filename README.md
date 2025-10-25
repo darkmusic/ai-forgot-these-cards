@@ -100,26 +100,37 @@ flowchart TD
 Here are some screenshots of the application:
 
 1. **Login Screen**:
+
    ![Login Screen](res/screenshots/sign_in.png)
 2. **User Home Page, showing User Context Menu**:
+
    ![User Home Page](res/screenshots/user_home.png)
 3. **User Settings**:
+
    ![User Settings](res/screenshots/user_settings.png)
 4. **Deck Management (with card template support)**:
+
    ![Deck Management](res/screenshots/manage_deck.png)
 5. **View Card**:
+
    ![View Card](res/screenshots/view_card.png)
 6. **Edit Card (With AI Assistance)**:
+
    ![Edit Card](res/screenshots/edit_card.png)
 7. **Create Card (With AI Assistance)**:
+
    ![Create Card](res/screenshots/create_card.png)
 8. **Quiz (Front of card, showing Markdown formatting)**:
+
    ![Quiz](res/screenshots/quiz_front.png)
 9. **Quiz (Back of card, showing Markdown formatting)**:
+
    ![Quiz Back](res/screenshots/quiz_back.png)
 10. **Admin Home**:
+
     ![Admin Management](res/screenshots/admin_home.png)
 11. **Add User**:
+
     ![Add User](res/screenshots/add_user.png)
 
 ## General Remarks
