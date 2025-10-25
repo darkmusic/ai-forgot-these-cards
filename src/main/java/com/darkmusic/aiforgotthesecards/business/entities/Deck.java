@@ -33,7 +33,7 @@ public class Deck {
     @JsonManagedReference
     private Set<Card> cards;
 
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToMany(cascade = {CascadeType.MERGE})
     @JoinTable(
             name="deck_tag",
             joinColumns = @JoinColumn(name="deck_id", referencedColumnName = "id"),

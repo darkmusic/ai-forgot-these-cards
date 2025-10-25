@@ -28,7 +28,7 @@ public class Card {
     @JsonBackReference
     private Deck deck;
 
-    @ManyToMany
+    @ManyToMany(cascade = CascadeType.MERGE)
     @JoinTable(
             name="card_tag",
             joinColumns = @JoinColumn(name="card_id", referencedColumnName = "id"),

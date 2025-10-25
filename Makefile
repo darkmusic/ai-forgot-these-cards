@@ -25,19 +25,23 @@ USE_NEXUS ?= 0
 # For a custom group named maven-group, use: http://host.docker.internal:8081/repository/maven-group/
 NEXUS_MIRROR_URL ?= http://host.docker.internal:8081/repository/maven-public
 
-.PHONY: clean \
+.PHONY: clean test \
 	drop-and-recreate-db export-db import-db \
 	build up down restart build-deploy delete-redeploy down-with-volumes tail-tomcat-logs \
 	redeploy-watch build-app-image build-web-image
 
 ########################################################################
-# Local Build Helpers (noop) – kept for compatibility
+# Local Build Helpers
 ########################################################################
 
 clean:
-	@echo "Clean target directory (no local build)."
+	@echo "Cleaning target directory."
 	@if [ -d target ]; then rm -rf target; fi
 	@if [ -d web ]; then rm -rf web; fi
+
+test:
+	@echo "Running unit tests."
+	@./mvnw test
 
 #######################################################################
 # Database Commands
@@ -183,13 +187,14 @@ nexus-down:
 .PHONY: help
 help:
 	@echo "Available make targets:"
-	@echo "  clean                     - Clean target directories (no local build)."
+	@echo "  clean                     - Clean target directories."
 	@echo "  drop-and-recreate-db      - Drop and recreate the PostgreSQL database."
 	@echo "  export-db                 - Export the PostgreSQL database to db/backup.sql."
 	@echo "  import-db                 - Import the PostgreSQL database from db/backup.sql."
 	@echo "  build-app-image           - Build the application Docker image."
 	@echo "  build-web-image           - Build the web Docker image."
 	@echo "  build                     - Build both application and web Docker images."
+	@echo "  test                      - Run unit tests."
 	@echo "  up                        - Start the application, database, and web containers."
 	@echo "  down                      - Stop and remove the application, database, and web containers."
 	@echo "  stop                      - Stop the application, database, and web containers."
@@ -202,7 +207,7 @@ help:
 	@echo "  nexus-up                  - Start Sonatype Nexus (data + server) for Maven caching on port 8081."
 	@echo "  nexus-status              - Show status of Nexus containers."
 	@echo "  nexus-logs                - Tail Nexus logs."
-	@echo "  nexus-down                - Stop and remove Nexus containers (not called by any other target)."
+	@echo "  nexus-down                - Stop and remove Nexus containers."
 	@echo "  build-llamacpp-cpu        - Build the llama.cpp CPU server."
 	@echo "  start-llamacpp            - Start the llama.cpp server with specified model and port."
 
@@ -215,7 +220,7 @@ build-llamacpp-cpu:
 	@echo "Building llama.cpp CPU server..."
 	cd dep/llama.cpp && \
 		 cmake -B build && \
-		 cmake --build build --config Release
+		 cmake --build build --config Release -j 4
 
 .PHONY: start-llamacpp
 start-llamacpp:
