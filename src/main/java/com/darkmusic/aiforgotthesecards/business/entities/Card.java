@@ -34,6 +34,5 @@ public class Card {
             joinColumns = @JoinColumn(name="card_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name="tag_id", referencedColumnName = "id")
     )
-    @JsonIgnore
     private Set<Tag> tags;
 }

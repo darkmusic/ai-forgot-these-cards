@@ -68,6 +68,8 @@ export-db:
 	@docker cp "$(DB_CONTAINER):/tmp/backup.sql" "db/backup.sql"
 
 import-db: drop-and-recreate-db
+  # Pause for a few seconds to ensure the DB is ready to accept connections
+	@sleep 5
 	@docker cp "db/backup.sql" "$(DB_CONTAINER):/tmp/backup.sql"
 	@docker exec -it "$(DB_CONTAINER)" sh -lc "pg_restore -h localhost -U \"$(POSTGRES_USER)\" -W -F c -v -d \"$(POSTGRES_DB)\" /tmp/backup.sql"
 
