@@ -28,7 +28,7 @@ NEXUS_MIRROR_URL ?= http://host.docker.internal:8081/repository/maven-public
 .PHONY: clean test \
 	drop-and-recreate-db export-db import-db \
 	build up down restart build-deploy delete-redeploy down-with-volumes tail-tomcat-logs \
-	redeploy-watch build-app-image build-web-image
+	redeploy-watch build-app-image build-web-image export-delete-redeploy
 
 ########################################################################
 # Local Build Helpers
@@ -138,6 +138,8 @@ build-deploy: build up
 
 delete-redeploy: down-with-volumes build up
 
+export-delete-redeploy: export-db delete-redeploy
+
 down-with-volumes:
 	@$(MAKE) down
 	@docker volume rm -f "$(DB_VOLUME)" >/dev/null 2>&1 || true
@@ -187,29 +189,30 @@ nexus-down:
 .PHONY: help
 help:
 	@echo "Available make targets:"
-	@echo "  clean                     - Clean target directories."
-	@echo "  drop-and-recreate-db      - Drop and recreate the PostgreSQL database."
-	@echo "  export-db                 - Export the PostgreSQL database to db/backup.sql."
-	@echo "  import-db                 - Import the PostgreSQL database from db/backup.sql."
-	@echo "  build-app-image           - Build the application Docker image."
-	@echo "  build-web-image           - Build the web Docker image."
-	@echo "  build                     - Build both application and web Docker images."
-	@echo "  test                      - Run unit tests."
-	@echo "  up                        - Start the application, database, and web containers."
-	@echo "  down                      - Stop and remove the application, database, and web containers."
-	@echo "  stop                      - Stop the application, database, and web containers."
-	@echo "  restart                   - Restart the application, database, and web containers."
-	@echo "  build-deploy              - Build images and deploy the application container."
-	@echo "  delete-redeploy           - Delete containers and volumes, then rebuild and redeploy."
-	@echo "  down-with-volumes         - Stop and remove containers and associated volumes."
-	@echo "  tail-tomcat-logs          - Tail the logs of the application container."
-	@echo "  redeploy-watch            - Redeploy and watch application logs."
-	@echo "  nexus-up                  - Start Sonatype Nexus (data + server) for Maven caching on port 8081."
-	@echo "  nexus-status              - Show status of Nexus containers."
-	@echo "  nexus-logs                - Tail Nexus logs."
-	@echo "  nexus-down                - Stop and remove Nexus containers."
-	@echo "  build-llamacpp-cpu        - Build the llama.cpp CPU server."
-	@echo "  start-llamacpp            - Start the llama.cpp server with specified model and port."
+	@echo "  clean                         - Clean target directories."
+	@echo "  drop-and-recreate-db          - Drop and recreate the PostgreSQL database."
+	@echo "  export-db                     - Export the PostgreSQL database to db/backup.sql."
+	@echo "  import-db                     - Import the PostgreSQL database from db/backup.sql."
+	@echo "  build-app-image               - Build the application Docker image."
+	@echo "  build-web-image               - Build the web Docker image."
+	@echo "  build                         - Build both application and web Docker images."
+	@echo "  test                          - Run unit tests."
+	@echo "  up                            - Start the application, database, and web containers."
+	@echo "  down                          - Stop and remove the application, database, and web containers."
+	@echo "  stop                          - Stop the application, database, and web containers."
+	@echo "  restart                       - Restart the application, database, and web containers."
+	@echo "  build-deploy                  - Build images and deploy the application container."
+	@echo "  delete-redeploy               - Delete containers and volumes, then rebuild and redeploy."
+	@echo "  export-delete-redeploy        - Export DB, delete containers/volumes, redeploy, and import DB."
+	@echo "  down-with-volumes             - Stop and remove containers and associated volumes."
+	@echo "  tail-tomcat-logs              - Tail the logs of the application container."
+	@echo "  redeploy-watch                - Redeploy and watch application logs."
+	@echo "  nexus-up                      - Start Sonatype Nexus (data + server) for Maven caching on port 8081."
+	@echo "  nexus-status                  - Show status of Nexus containers."
+	@echo "  nexus-logs                    - Tail Nexus logs."
+	@echo "  nexus-down                    - Stop and remove Nexus containers."
+	@echo "  build-llamacpp-cpu            - Build the llama.cpp CPU server."
+	@echo "  start-llamacpp                - Start the llama.cpp server with specified model and port."
 
 #######################################################################
 # Llamacpp Commands

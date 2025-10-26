@@ -114,22 +114,26 @@ Here are some screenshots of the application:
 5. **View Card**:
 
    ![View Card](res/screenshots/view_card.png)
-6. **Edit Card (With AI Assistance)**:
+6. **View Card (with LaTeX support)**:
+
+   ![View Card LaTeX](res/screenshots/latex_support.png)
+
+7. **Edit Card (With AI Assistance)**:
 
    ![Edit Card](res/screenshots/edit_card.png)
-7. **Create Card (With AI Assistance)**:
+8. **Create Card (With AI Assistance)**:
 
    ![Create Card](res/screenshots/create_card.png)
-8. **Quiz (Front of card, showing Markdown formatting)**:
+9. **Quiz (Front of card, showing Markdown formatting)**:
 
    ![Quiz](res/screenshots/quiz_front.png)
-9. **Quiz (Back of card, showing Markdown formatting)**:
+10. **Quiz (Back of card, showing Markdown formatting)**:
 
    ![Quiz Back](res/screenshots/quiz_back.png)
-10. **Admin Home**:
+11. **Admin Home**:
 
     ![Admin Management](res/screenshots/admin_home.png)
-11. **Add User**:
+12. **Add User**:
 
     ![Add User](res/screenshots/add_user.png)
 
@@ -266,6 +270,7 @@ make import-db
 - [x] Remove dependency on local building and build entirely inside containers.
 - [x] Create .env file support for configuration.
 - [x] Add Maven dependency caching via Sonatype Nexus 3.
+- [x] Add LaTeX support for rendering mathematical expressions.
 - [ ] Add swagger/openapi support for the REST API.
 - [ ] Add support for importing/exporting flashcards in different formats (e.g., CSV, YAML, TOML, Anki).
 - [ ] Add profile picture upload support.
