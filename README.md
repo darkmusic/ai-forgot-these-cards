@@ -135,7 +135,7 @@ Here are some screenshots of the application:
    ![Admin Management](res/screenshots/admin_home.png)
 12. **Add User**:
 
-    ![Add User](res/screenshots/add_user.png)
+   ![Add User](res/screenshots/add_user.png)
 
 ## General Remarks
 
