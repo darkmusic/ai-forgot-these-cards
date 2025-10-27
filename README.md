@@ -132,7 +132,7 @@ Here are some screenshots of the application:
    ![Quiz Back](res/screenshots/quiz_back.png)
 11. **Admin Home**:
 
-    ![Admin Management](res/screenshots/admin_home.png)
+   ![Admin Management](res/screenshots/admin_home.png)
 12. **Add User**:
 
     ![Add User](res/screenshots/add_user.png)
