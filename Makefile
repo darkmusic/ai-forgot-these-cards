@@ -224,6 +224,7 @@ help:
 build-llamacpp-cpu:
 	@echo "Building llama.cpp CPU server..."
 	cd dep/llama.cpp && \
+	   git pull && \
 		 cmake -B build && \
 		 cmake --build build --config Release -j 4
 
