@@ -140,7 +140,7 @@ build-deploy: build up
 
 delete-redeploy: down-with-volumes build up
 
-export-delete-redeploy: export-db delete-redeploy
+export-delete-redeploy: up export-db delete-redeploy
 
 down-with-volumes:
 	@$(MAKE) down
