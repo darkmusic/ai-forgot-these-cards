@@ -32,7 +32,7 @@ Features:
 - User management
 - Admin management
 - Spring Security
-- Optional Maven dependency caching
+- Optional Maven/APT dependency caching
 - User profiles
 - Llama.cpp integration
   - Chat with a model
@@ -207,13 +207,13 @@ make nexus-logs     # optional: tail logs until ready
 Enable the cache for app builds by setting an environment variable in `.env` before building:
 
 ```bash
-USE_NEXUS=1
+USE_NEXUS_MAVEN=1
 ```
 
 Details:
 
-- When `USE_NEXUS=1` is set, the backend Docker build injects a Maven mirror into the builder image, using `NEXUS_MIRROR_URL` (defaults to Nexus 3's maven-public group at `http://host.docker.internal:8081/repository/maven-public`).
-- If you would like to create a custom group named `maven-group`, create it in the Nexus UI, and then set `USE_NEXUS` and `NEXUS_MIRROR_URL` in `.env` before building.
+- When `USE_NEXUS_MAVEN=1` is set, the backend Docker build injects a Maven mirror into the builder image, using `NEXUS_MAVEN_MIRROR_URL` (defaults to Nexus 3's maven-public group at `http://host.docker.internal:8081/repository/maven-public`).
+- If you would like to create a custom group named `maven-group`, create it in the Nexus UI, and then set `USE_NEXUS_MAVEN` and `NEXUS_MAVEN_MIRROR_URL` in `.env` before building.
 
 - The Nexus container remains running at all times and is not stopped by `make down` or other targets. To stop or remove it explicitly, use:
 
@@ -221,12 +221,36 @@ Details:
    make nexus-down
    ```
 
-- Note that you may also host a Nexus instance on another machine or server, and point to that by setting `NEXUS_MIRROR_URL` in `.env`.
+- Note that you may also host a Nexus instance on another machine or server, and point to that by setting `NEXUS_MAVEN_MIRROR_URL` in `.env`.
 
 Troubleshooting:
 
 - It can take 1–2 minutes for Nexus to become fully ready on first run. If builds fail to reach the mirror, retry after Nexus is up.
-- On Linux, the build uses `host.docker.internal` via Docker's `--add-host=host.docker.internal:host-gateway` to reach the host. If your Docker version doesn't support `host-gateway`, replace `host.docker.internal` with your host IP in `NEXUS_MIRROR_URL`.
+- On Linux, the build uses `host.docker.internal` via Docker's `--add-host=host.docker.internal:host-gateway` to reach the host. If your Docker version doesn't support `host-gateway`, replace `host.docker.internal` with your host IP in `NEXUS_MAVEN_MIRROR_URL`.
+
+#### Optional: APT dependency proxies (Nexus) for Docker builds
+
+To speed up apt operations in the app+web Docker image builds and reduce network flakiness, you can point the build to Nexus APT proxy repositories. These are optional and only used during Docker builds for the app and web images.
+
+1) In Nexus, create APT (proxy) repositories for the upstreams you need:
+   - Ubuntu Noble: archive.ubuntu.com and security.ubuntu.com
+   - Debian Bookworm: deb.debian.org and security.debian.org
+
+2) Copy each repository’s HTTP URL and set the corresponding variables in your `.env`:
+   ```bash
+   # Ubuntu Noble
+   NEXUS_APT_MIRROR_ARCHIVE_UBUNTU_NOBLE_URL=http://localhost:8081/repository/archive.ubuntu.com_noble/
+   NEXUS_APT_MIRROR_SECURITY_UBUNTU_NOBLE_URL=http://localhost:8081/repository/security.ubuntu.com_noble/
+
+   # Debian Bookworm
+   NEXUS_APT_MIRROR_DEBIAN_BOOKWORM_URL=http://localhost:8081/repository/deb.debian.org-bookworm-apt-proxy/
+   NEXUS_APT_MIRROR_SECURITY_DEBIAN_BOOKWORM_URL=http://localhost:8081/repository/deb.debian.org-bookworm-security-apt-proxy/
+   ```
+
+Notes:
+- If these variables are set, the app/web Dockerfile builds will use them to replace default APT sources for the matching base image (Ubuntu Noble or Debian Bookworm).
+- If unset, the build falls back to public upstream mirrors.
+- On Linux hosts, you can also host Nexus on another machine and point the URLs above to that host.
 
 ## Exporting the database
 
@@ -271,6 +295,7 @@ make import-db
 - [x] Create .env file support for configuration.
 - [x] Add Maven dependency caching via Sonatype Nexus 3.
 - [x] Add LaTeX support for rendering mathematical expressions.
+- [x] Add APT dependency caching via Sonatype Nexus 3 for Docker builds.
 - [ ] Add swagger/openapi support for the REST API.
 - [ ] Add support for importing/exporting flashcards in different formats (e.g., CSV, YAML, TOML, Anki).
 - [ ] Add profile picture upload support.

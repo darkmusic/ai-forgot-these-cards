@@ -25,7 +25,7 @@ Key paths:
 Notes on container naming:
 - Containers are `db`, `app`, `web`. Network is `cards-net`. DB volume is `pgdata`.
 - Make targets use plain `docker run` commands, not docker-compose.
-- Optional `.env` file for environment overrides (e.g., `POSTGRES_USER`, `POSTGRES_DB`, `USE_NEXUS`, `NEXUS_MIRROR_URL`).
+- Optional `.env` file for environment overrides (e.g., `POSTGRES_USER`, `POSTGRES_DB`, `USE_NEXUS_MAVEN`, `NEXUS_MAVEN_MIRROR_URL`).
 
 ## Security, auth, and CSRF
 - SecurityFilterChain in `AiForgotTheseCardsApplication.java`:
@@ -86,10 +86,24 @@ Notes on container naming:
 
 ### Maven dependency caching (optional Nexus)
 - **Start Nexus**: `make nexus-up` – starts Sonatype Nexus 3 on port 8081 with persistent volume.
-- **Enable caching**: Set `USE_NEXUS=1` in `.env` (or export in shell). Default mirror URL is `http://host.docker.internal:8081/repository/maven-public`.
+- **Enable caching**: Set `USE_NEXUS_MAVEN=1` in `.env` (or export in shell). Default mirror URL is `http://host.docker.internal:8081/repository/maven-public`.
 - **Check status**: `make nexus-status` – shows Nexus container status.
 - **View logs**: `make nexus-logs` – tails Nexus logs.
 - **Stop Nexus**: `make nexus-down` – removes Nexus container (never called by other targets).
+
+APT mirrors (optional, used during app/web Dockerfile builds):
+- You can also proxy APT traffic via Nexus to speed up Docker builds.
+- Set any of these in `.env` to the Nexus repo URLs you created:
+  - `NEXUS_APT_MIRROR_ARCHIVE_UBUNTU_NOBLE_URL`
+  - `NEXUS_APT_MIRROR_SECURITY_UBUNTU_NOBLE_URL`
+  - `NEXUS_APT_MIRROR_DEBIAN_BOOKWORM_URL`
+  - `NEXUS_APT_MIRROR_SECURITY_DEBIAN_BOOKWORM_URL`
+- Example values (adjust host/paths to your Nexus):
+  - `http://localhost:8081/repository/archive.ubuntu.com_noble/`
+  - `http://localhost:8081/repository/security.ubuntu.com_noble/`
+  - `http://localhost:8081/repository/deb.debian.org-bookworm-apt-proxy/`
+  - `http://localhost:8081/repository/deb.debian.org-bookworm-security-apt-proxy/`
+- If set, the app/web image builds rewrite APT sources to use these proxies; otherwise they use public upstream mirrors.
 
 Note: Nexus targets are independent; other Make targets never start or stop Nexus.
 

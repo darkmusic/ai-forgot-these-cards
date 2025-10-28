@@ -14,16 +14,18 @@ DB_VOLUME := pgdata
 # Load optional environment overrides from .env (if present)
 ifneq (,$(wildcard .env))
 include .env
-export USE_NEXUS NEXUS_MIRROR_URL POSTGRES_USER POSTGRES_DB
+export USE_NEXUS_MAVEN NEXUS_MAVEN_MIRROR_URL POSTGRES_USER POSTGRES_DB
+export NEXUS_APT_MIRROR_ARCHIVE_UBUNTU_NOBLE_URL NEXUS_APT_MIRROR_SECURITY_UBUNTU_NOBLE_URL
+export NEXUS_APT_MIRROR_DEBIAN_BOOKWORM_URL NEXUS_APT_MIRROR_SECURITY_DEBIAN_BOOKWORM_URL
 endif
 
 # Optional Maven cache via Nexus (disabled by default)
-# Set USE_NEXUS=1 to enable Maven downloads through a local Nexus proxy.
+# Set USE_NEXUS_MAVEN=1 to enable Maven downloads through a local Nexus proxy.
 # On Linux, we map host.docker.internal using --add-host for the build container.
-USE_NEXUS ?= 0
+USE_NEXUS_MAVEN ?= 0
 # Default mirror URL points to Nexus 3's "maven-public" group (default installation).
 # For a custom group named maven-group, use: http://host.docker.internal:8081/repository/maven-group/
-NEXUS_MIRROR_URL ?= http://host.docker.internal:8081/repository/maven-public
+NEXUS_MAVEN_MIRROR_URL ?= http://host.docker.internal:8081/repository/maven-public
 
 .PHONY: clean test \
 	drop-and-recreate-db export-db import-db \
@@ -79,17 +81,25 @@ import-db: drop-and-recreate-db
 
 build-app-image:
 	@# Conditionally pass a Maven mirror for dependency caching
-	@if [ "$(USE_NEXUS)" = "1" ]; then \
-		echo "Building app image with Maven mirror: $(NEXUS_MIRROR_URL)"; \
+	@if [ "$(USE_NEXUS_MAVEN)" = "1" ]; then \
+		echo "Building app image with Maven mirror: $(NEXUS_MAVEN_MIRROR_URL)"; \
 		docker build --add-host=host.docker.internal:host-gateway \
-			--build-arg MAVEN_MIRROR_URL="$(NEXUS_MIRROR_URL)" \
+			--build-arg MAVEN_MIRROR_URL="$(NEXUS_MAVEN_MIRROR_URL)" \
+			--build-arg NEXUS_APT_MIRROR_ARCHIVE_UBUNTU_NOBLE_URL="$(NEXUS_APT_MIRROR_ARCHIVE_UBUNTU_NOBLE_URL)" \
+			--build-arg NEXUS_APT_MIRROR_SECURITY_UBUNTU_NOBLE_URL="$(NEXUS_APT_MIRROR_SECURITY_UBUNTU_NOBLE_URL)" \
 			-t "$(APP_IMAGE)" -f dockerfiles/app/Dockerfile .; \
 	else \
-		docker build -t "$(APP_IMAGE)" -f dockerfiles/app/Dockerfile .; \
+		docker build \
+			--build-arg NEXUS_APT_MIRROR_ARCHIVE_UBUNTU_NOBLE_URL="$(NEXUS_APT_MIRROR_ARCHIVE_UBUNTU_NOBLE_URL)" \
+			--build-arg NEXUS_APT_MIRROR_SECURITY_UBUNTU_NOBLE_URL="$(NEXUS_APT_MIRROR_SECURITY_UBUNTU_NOBLE_URL)" \
+			-t "$(APP_IMAGE)" -f dockerfiles/app/Dockerfile .; \
 	fi
 
 build-web-image:
-	@docker build -t "$(WEB_IMAGE)" -f dockerfiles/web/Dockerfile .
+	@docker build -t "$(WEB_IMAGE)" \
+		--build-arg NEXUS_APT_MIRROR_DEBIAN_BOOKWORM_URL="$(NEXUS_APT_MIRROR_DEBIAN_BOOKWORM_URL)" \
+		--build-arg NEXUS_APT_MIRROR_SECURITY_DEBIAN_BOOKWORM_URL="$(NEXUS_APT_MIRROR_SECURITY_DEBIAN_BOOKWORM_URL)" \
+		-f dockerfiles/web/Dockerfile .
 
 build: build-app-image build-web-image
 

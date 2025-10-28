@@ -4,6 +4,8 @@ WORKDIR /workspace
 
 # Optional: Use an external Maven mirror (e.g., Nexus)
 ARG MAVEN_MIRROR_URL
+ARG NEXUS_APT_MIRROR_ARCHIVE_UBUNTU_NOBLE_URL
+ARG NEXUS_APT_MIRROR_SECURITY_UBUNTU_NOBLE_URL
 
 # Copy only files needed to resolve deps first for better caching
 COPY pom.xml ./
@@ -12,6 +14,16 @@ COPY .mvn/ .mvn/
 # Copy sources and frontend
 COPY src/ src/
 COPY dep/ dep/
+
+# Configure APT to use Nexus mirrors if provided
+RUN if [ -n "$NEXUS_APT_MIRROR_ARCHIVE_UBUNTU_NOBLE_URL" ] && [ -n "$NEXUS_APT_MIRROR_SECURITY_UBUNTU_NOBLE_URL" ]; then \
+	echo "Configuring APT to use Nexus mirrors" && \
+	rm -f /etc/apt/sources.list && \
+	rm -f /etc/apt/sources.list.d/* && \
+	rm -rf /var/lib/apt/lists/* && \
+	echo "deb $NEXUS_APT_MIRROR_ARCHIVE_UBUNTU_NOBLE_URL noble main restricted universe multiverse" >> /etc/apt/sources.list && \
+	echo "deb $NEXUS_APT_MIRROR_SECURITY_UBUNTU_NOBLE_URL noble-security main restricted universe multiverse" >> /etc/apt/sources.list; \
+  fi
 
 # Install minimal tools needed by frontend deploy (GNU make)
 RUN apt-get update && apt-get install -y --no-install-recommends make && rm -rf /var/lib/apt/lists/*
