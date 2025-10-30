@@ -169,10 +169,6 @@ To get started with the project, follow these steps:
       sparseVhd=true # To minimize wsl container disk image use
     ```
 
-1. Install Llama.cpp and download at least one model in GGUF format (e.g., `llama2` or `smollm2:135m`).
-    1. Note that Llama.cpp can also be manually built if desired, and is included as a submodule in `dep/llama.cpp` for convenience (note that you may wish to do a `git pull` inside the submodule directory to ensure you have the latest, as rapid development within llamacpp will quickly cause the submodule to become out of date).
-1. Make sure Llama.cpp is running via `llama-server -m /path/to/model.gguf --port 8087` (add --host if needed).
-1. Update the `LLAMACPP_URL` setting in `.env` to a URL reachable from inside the `app` container (default may be `http://host.docker.internal:8087` or the LAN IP of your host, depending on your platform).
 1. Install Docker, Rancher Desktop, Podman, etc. if needed.
 1. Clone the repository and initialize the submodules:
 
@@ -182,6 +178,10 @@ To get started with the project, follow these steps:
    git submodule update --init
    ```
 
+1. Install Llama.cpp and download at least one model in GGUF format (e.g., `llama2` or `smollm2:135m`).
+    1. Note that Llama.cpp can also be manually built if desired, and is included as a submodule in `dep/llama.cpp` for convenience (note that the `make build-llamacpp` target takes care of doing a `git pull` inside the submodule directory and doing a build).
+1. Make sure Llama.cpp is running via `llama-server -m /path/to/model.gguf --port 8087` (add --host if needed). `make start-llamacpp` is provided as a convenience target to start it (be sure to update LLAMA_MODEL_PATH in `.env` beforehand).
+1. Update the `LLAMACPP_URL` setting in `.env` to a URL reachable from inside the `app` container (default may be `http://host.docker.internal:8087` or the LAN IP of your host, depending on your platform).
 1. Build and start the containers (this compiles the backend WAR and the frontend SPA inside Docker images):
 
    ```bash
