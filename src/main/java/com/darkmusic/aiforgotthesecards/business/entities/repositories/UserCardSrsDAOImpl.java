@@ -96,15 +96,6 @@ public class UserCardSrsDAOImpl implements UserCardSrsDAO {
         if (entity.getId() == null) {
             throw new IllegalArgumentException("Cannot delete entity without ID");
         }
-        UserCardSrs managed = em.find(UserCardSrs.class, entity.getId());
-        if (managed == null) {
-            throw new IllegalArgumentException("Entity not found in database for deletion");
-        }
-        if (!em.contains(managed)) {
-            managed = em.merge(managed);
-        }
-        em.remove(managed);
-    }
 
     @Override
     public void deleteAllById(Iterable<? extends Long> ids) {
