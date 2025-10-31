@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 @Getter
 public class SrsCardResponse {
     private Card card;
+    private DeckInfo deck;  // Use DeckInfo DTO to avoid circular reference issues
     private LocalDateTime nextReviewAt;
     private Integer intervalDays;
     private Integer repetitions;

@@ -9,9 +9,11 @@ import com.darkmusic.aiforgotthesecards.business.entities.repositories.DeckDAO;
 import com.darkmusic.aiforgotthesecards.business.entities.repositories.UserCardSrsDAO;
 import com.darkmusic.aiforgotthesecards.business.entities.repositories.UserDAO;
 import com.darkmusic.aiforgotthesecards.business.entities.services.SrsService;
+import com.darkmusic.aiforgotthesecards.web.contracts.DeckInfo;
 import com.darkmusic.aiforgotthesecards.web.contracts.SrsCardResponse;
 import com.darkmusic.aiforgotthesecards.web.contracts.SrsReviewRequest;
 import jakarta.persistence.EntityManager;
+import jakarta.transaction.Transactional;
 import lombok.Getter;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +25,7 @@ import java.util.Optional;
 
 @Getter
 @RestController
+@Transactional
 public class SrsController {
     private final SrsService srsService;
     private final UserDAO userDAO;
@@ -39,6 +42,14 @@ public class SrsController {
         this.deckDAO = deckDAO;
         this.userCardSrsDAO = userCardSrsDAO;
         this.em = em;
+    }
+
+    /**
+     * Health check endpoint to verify the controller is loaded.
+     */
+    @GetMapping("/api/srs/health")
+    public String health() {
+        return "SRS Controller is running";
     }
 
     /**
@@ -84,6 +95,14 @@ public class SrsController {
 
             SrsCardResponse response = new SrsCardResponse();
             response.setCard(card);
+
+            // Create DeckInfo to avoid circular reference issues
+            DeckInfo deckInfo = new DeckInfo();
+            deckInfo.setId(card.getDeck().getId());
+            deckInfo.setName(card.getDeck().getName());
+            deckInfo.setTemplateFront(card.getDeck().getTemplateFront());
+            deckInfo.setTemplateBack(card.getDeck().getTemplateBack());
+            response.setDeck(deckInfo);
 
             if (srsRecord.isEmpty()) {
                 // Never reviewed - add to queue
