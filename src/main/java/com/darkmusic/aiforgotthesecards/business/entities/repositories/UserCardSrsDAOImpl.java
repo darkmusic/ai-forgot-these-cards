@@ -43,8 +43,7 @@ public class UserCardSrsDAOImpl implements UserCardSrsDAO {
     public <S extends UserCardSrs> S save(S entity) {
         if (entity.getId() != null && entity.getId() > 0L) {
             em.merge(entity);
-        }
-        else {
+        } else {
             em.persist(entity);
         }
 
@@ -94,7 +93,18 @@ public class UserCardSrsDAOImpl implements UserCardSrsDAO {
 
     @Override
     public void delete(UserCardSrs entity) {
-        em.remove(entity);
+        if (entity.getId() != null) {
+            em.remove(em.contains(entity) ? entity : em.merge(entity));
+        }
+
+        if (managed == null) {
+            throw new IllegalArgumentException("Entity not found in database for deletion");
+        }
+
+        if (!em.contains(managed)) {
+            managed = em.merge(managed);
+        }
+        em.remove(managed);
     }
 
     @Override

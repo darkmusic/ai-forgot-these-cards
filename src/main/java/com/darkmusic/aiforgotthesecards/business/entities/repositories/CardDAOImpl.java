@@ -36,6 +36,13 @@ public class CardDAOImpl implements CardDAO {
     }
 
     @Override
+    public long countByDeckUser(User user) {
+        return em.createQuery("select count(c) from Card c where c.deck.user.id = :userId", Long.class)
+                .setParameter("userId", user.getId())
+                .getSingleResult();
+    }
+
+    @Override
     public <S extends Card> S save(S entity) {
         if (entity.getId() != null && entity.getId() > 0L) {
             em.merge(entity);

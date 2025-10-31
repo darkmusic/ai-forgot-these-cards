@@ -183,7 +183,7 @@ public class SrsController {
         LocalDateTime now = LocalDateTime.now();
         List<UserCardSrs> allSrsRecords = userCardSrsDAO.findByUser(user);
 
-        long totalCards = ((List<Card>) cardDAO.findByDeckUser(user)).size();
+        long totalCards = cardDAO.countByDeckUser(user);
         long reviewedCards = allSrsRecords.size();
         long newCards = totalCards - reviewedCards;
         long dueCards = allSrsRecords.stream()
