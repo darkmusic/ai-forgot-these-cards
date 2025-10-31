@@ -96,6 +96,7 @@ public class UserCardSrsDAOImpl implements UserCardSrsDAO {
         if (entity.getId() == null) {
             throw new IllegalArgumentException("Cannot delete entity without ID");
         }
+    }
 
     @Override
     public void deleteAllById(Iterable<? extends Long> ids) {

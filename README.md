@@ -102,7 +102,6 @@ Here are some screenshots of the application:
 
 1. **Login Screen**:\
    ![Login Screen](res/screenshots/sign_in.png)
-
 2. **User Home Page, showing User Context Menu**\
    ![User Home Page](res/screenshots/user_home.png)
 3. **User Settings**:\
