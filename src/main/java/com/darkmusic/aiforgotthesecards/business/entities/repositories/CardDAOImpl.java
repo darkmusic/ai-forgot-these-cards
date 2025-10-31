@@ -23,16 +23,23 @@ public class CardDAOImpl implements CardDAO {
 
     @Override
     public Iterable<Card> findByDeck(Deck deck) {
-        return em.createQuery("from Card where deck_id = :deckId", Card.class)
+        return em.createQuery("from Card c join fetch c.deck where c.deck.id = :deckId", Card.class)
                 .setParameter("deckId", deck.getId())
                 .getResultList();
     }
 
     @Override
     public Iterable<Card> findByDeckUser(User user) {
-        return em.createQuery("from Card where deck_id in (select id from Deck where user_id = :userId)", Card.class)
+        return em.createQuery("from Card c join fetch c.deck where c.deck.user.id = :userId", Card.class)
                 .setParameter("userId", user.getId())
                 .getResultList();
+    }
+
+    @Override
+    public long countByDeckUser(User user) {
+        return em.createQuery("select count(c) from Card c where c.deck.user.id = :userId", Long.class)
+                .setParameter("userId", user.getId())
+                .getSingleResult();
     }
 
     @Override

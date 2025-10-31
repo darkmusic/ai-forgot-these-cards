@@ -42,7 +42,8 @@ Features:
   - Edit card with AI assistance
   - View card
   - Markdown support for card content
-- Quiz
+- Spaced Repetition System (SRS) for reviewing cards
+- LaTeX support for rendering mathematical expressions
 
 Runtime Requirements:
 
@@ -99,42 +100,29 @@ flowchart TD
 
 Here are some screenshots of the application:
 
-1. **Login Screen**:
-
+1. **Login Screen**:\
    ![Login Screen](res/screenshots/sign_in.png)
-2. **User Home Page, showing User Context Menu**:
-
+2. **User Home Page, showing User Context Menu**\
    ![User Home Page](res/screenshots/user_home.png)
-3. **User Settings**:
-
+3. **User Settings**:\
    ![User Settings](res/screenshots/user_settings.png)
-4. **Deck Management (with card template support)**:
-
+4. **Deck Management (with card template support)**:\
    ![Deck Management](res/screenshots/manage_deck.png)
-5. **View Card**:
-
+5. **View Card**:\
    ![View Card](res/screenshots/view_card.png)
-6. **View Card (with LaTeX support)**:
-
+6. **View Card (with LaTeX support)**:\
    ![View Card LaTeX](res/screenshots/latex_support.png)
-
-7. **Edit Card (With AI Assistance)**:
-
+7. **Edit Card (With AI Assistance)**:\
    ![Edit Card](res/screenshots/edit_card.png)
-8. **Create Card (With AI Assistance)**:
-
+8. **Create Card (With AI Assistance)**:\
    ![Create Card](res/screenshots/create_card.png)
-9. **Quiz (Front of card, showing Markdown formatting)**:
-
-   ![Quiz](res/screenshots/quiz_front.png)
-10. **Quiz (Back of card, showing Markdown formatting)**:
-
-   ![Quiz Back](res/screenshots/quiz_back.png)
-11. **Admin Home**:
-
+9. **SRS Review (Front of card, showing Markdown formatting)**:\
+   ![SRS Review](res/screenshots/review_front.png)
+10. **SRS Review (Back of card, showing Markdown formatting)**:\
+   ![SRS Review Back](res/screenshots/review_back.png)
+11. **Admin Home**:\
    ![Admin Management](res/screenshots/admin_home.png)
-12. **Add User**:
-
+12. **Add User**:\
    ![Add User](res/screenshots/add_user.png)
 
 ## General Remarks
@@ -296,10 +284,10 @@ make import-db
 - [x] Add Maven dependency caching via Sonatype Nexus 3.
 - [x] Add LaTeX support for rendering mathematical expressions.
 - [x] Add APT dependency caching via Sonatype Nexus 3 for Docker builds.
+- [x] Implement a more sophisticated quiz system with spaced repetition.
 - [ ] Add swagger/openapi support for the REST API.
 - [ ] Add support for importing/exporting flashcards in different formats (e.g., CSV, YAML, TOML, Anki).
 - [ ] Add profile picture upload support.
-- [ ] Implement a more sophisticated quiz system with spaced repetition.
 - [ ] Add support for statistics and progress tracking.
 - [ ] Add support for multiple UI languages.
 - [ ] Evaluate possible agentic or other AI-assisted integration, such as using the AI to create flashcards based on user input or other sources.
