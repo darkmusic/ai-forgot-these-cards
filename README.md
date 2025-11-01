@@ -141,6 +141,17 @@ To get started with the project, follow these steps:
 
 1. Install Make if needed.
 1. Copy `.env.example` to `.env` and customize as needed.
+   - Common configuration options in `.env`:
+     - `APP_SERVER_PORT`: Backend server port (default: 8080)
+     - `SESSION_TIMEOUT`: Session idle timeout before requiring re-authentication (default: 30m). Common values: `30m`, `1h`, `2h`, `3600s`
+     - `CONNECTION_TIMEOUT`: Tomcat HTTP connection timeout (default: 20s). Common values: `20s`, `30s`, `1m`
+     - `ASYNC_REQUEST_TIMEOUT`: Spring MVC async request timeout (default: 30s). Common values: `30s`, `1m`, `2m`
+     - `LLAMACPP_URL`: URL to Llama.cpp server (default: http://localhost:8087)
+     - `DB_URL`, `POSTGRES_USER`, `POSTGRES_PASSWORD`: Database connection settings
+     - `USE_NEXUS_MAVEN`: Enable Maven dependency caching via Nexus (optional)
+   - Advanced configuration (in `application.properties`):
+     - `server.tomcat.connection-timeout`: Tomcat HTTP connection timeout (default: 20s)
+     - `spring.mvc.async.request-timeout`: Spring MVC async request timeout (default: 30s)
 1. If on Windows, add/edit .wslconfig in your user home folder with settings (adjust as needed for memory, etc.):
 
       ```bash
