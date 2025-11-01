@@ -149,9 +149,6 @@ To get started with the project, follow these steps:
      - `LLAMACPP_URL`: URL to Llama.cpp server (default: http://localhost:8087)
      - `DB_URL`, `POSTGRES_USER`, `POSTGRES_PASSWORD`: Database connection settings
      - `USE_NEXUS_MAVEN`: Enable Maven dependency caching via Nexus (optional)
-   - Advanced configuration (in `application.properties`):
-     - `server.tomcat.connection-timeout`: Tomcat HTTP connection timeout (default: 20s)
-     - `spring.mvc.async.request-timeout`: Spring MVC async request timeout (default: 30s)
 1. If on Windows, add/edit .wslconfig in your user home folder with settings (adjust as needed for memory, etc.):
 
       ```bash
