@@ -45,6 +45,7 @@ public class AiForgotTheseCardsApplication {
                         .requestMatchers("/v3/api-docs/**").permitAll()
                         // Permit actuator endpoints for monitoring and Swagger
                         .requestMatchers("/actuator/**").permitAll()
+                        .requestMatchers("/swagger-ui/**").permitAll()
                         // Secure all other API endpoints
                         .requestMatchers("/api/**").authenticated()
                         .requestMatchers("/admin/**").hasRole("ADMIN")

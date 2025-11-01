@@ -266,7 +266,11 @@ make import-db
 
 ## Actuator Endpoints
 
-- The application exposes several actuator endpoints for monitoring and management. You can access them at `http://localhost:8080/actuator`.
+- The application exposes several actuator endpoints for monitoring and management. You can access them here: [Actuator](http://localhost:8080/actuator).
+
+## Swagger Endpoint
+
+- The Swagger UI endpoint is available here: [Swagger UI](http://localhost:8080/swagger-ui/index.html)
 
 ## Roadmap
 
@@ -285,7 +289,7 @@ make import-db
 - [x] Add LaTeX support for rendering mathematical expressions.
 - [x] Add APT dependency caching via Sonatype Nexus 3 for Docker builds.
 - [x] Implement a more sophisticated quiz system with spaced repetition.
-- [ ] Add swagger/openapi support for the REST API.
+- [x] Add swagger/openapi support for the REST API.
 - [ ] Add support for importing/exporting flashcards in different formats (e.g., CSV, YAML, TOML, Anki).
 - [ ] Add profile picture upload support.
 - [ ] Add support for statistics and progress tracking.
