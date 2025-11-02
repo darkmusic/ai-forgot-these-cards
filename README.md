@@ -43,6 +43,7 @@ Features:
   - View card
   - Markdown support for card content
 - Spaced Repetition System (SRS) for reviewing cards
+- Cram mode for studying all cards in a deck without affecting SRS scheduling
 - LaTeX support for rendering mathematical expressions
 
 Runtime Requirements:
@@ -120,9 +121,11 @@ Here are some screenshots of the application:
    ![SRS Review](res/screenshots/review_front.png)
 10. **SRS Review (Back of card, showing Markdown formatting)**:\
    ![SRS Review Back](res/screenshots/review_back.png)
-11. **Admin Home**:\
+11. **Cram Session (studying all cards without SRS updates)**:\
+   ![Cram Session](res/screenshots/cram_session.png)
+12. **Admin Home**:\
    ![Admin Management](res/screenshots/admin_home.png)
-12. **Add User**:\
+13. **Add User**:\
    ![Add User](res/screenshots/add_user.png)
 
 ## General Remarks
@@ -134,6 +137,25 @@ Here are some screenshots of the application:
 - AI is provided as assistance, but should not be assumed to be factually correct, especially regarding the intricacies of grammar and language. Always review the AI-generated content before saving it to ensure accuracy and appropriateness for your use case.
 - Different models may provide different results, and the output quality will depend on the model used and the input provided.
 - The loading of tensors by Llama.cpp can be slow, especially for larger models. Be patient while the model is loading.
+
+## Study Modes
+
+The application provides two distinct study modes:
+
+### Review Mode (SRS-based)
+- Accessed via the main "Review" navigation
+- Shows only cards that are due for review based on the Spaced Repetition System algorithm
+- Includes quality rating buttons (Again, Hard, Good, Easy) after revealing the answer
+- Ratings update the SRS schedule, adjusting when each card will next appear
+- Ideal for efficient long-term retention and optimized study sessions
+
+### Cram Mode (All cards)
+- Accessed via the "Cram" link next to each deck in the deck list
+- Presents **all cards** in the selected deck, regardless of SRS status
+- Simplified navigation with Previous/Next buttons and answer reveal toggle
+- **Does not update** SRS schedules - perfect for pre-exam cramming or casual review
+- No quality ratings required - just flip through the cards at your own pace
+- Useful for getting familiar with new decks or intensive review before tests
 
 ## Getting Started
 
@@ -297,6 +319,7 @@ make import-db
 - [x] Add LaTeX support for rendering mathematical expressions.
 - [x] Add APT dependency caching via Sonatype Nexus 3 for Docker builds.
 - [x] Implement a more sophisticated quiz system with spaced repetition.
+- [x] Add cram mode for studying all cards without affecting SRS scheduling.
 - [x] Add swagger/openapi support for the REST API.
 - [ ] Add support for importing/exporting flashcards in different formats (e.g., CSV, YAML, TOML, Anki).
 - [ ] Add profile picture upload support.

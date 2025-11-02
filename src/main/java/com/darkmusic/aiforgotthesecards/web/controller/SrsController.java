@@ -127,6 +127,69 @@ public class SrsController {
     }
 
     /**
+     * Get all cards from a deck for cramming (no SRS filtering).
+     * Returns all cards regardless of their review status.
+     *
+     * @param authentication Spring Security authentication object
+     * @param deckId Required deck ID to get cards from
+     * @return List of all cards in the deck
+     */
+    @GetMapping("/api/srs/cram-queue")
+    public List<SrsCardResponse> getCramQueue(
+            Authentication authentication,
+            @RequestParam Long deckId) {
+
+        if (authentication == null || authentication.getName() == null) {
+            return new ArrayList<>();
+        }
+
+        User user = userDAO.findByUsername(authentication.getName()).orElse(null);
+        if (user == null) {
+            return new ArrayList<>();
+        }
+
+        // Get the deck and verify ownership
+        Deck deck = deckDAO.findById(deckId).orElse(null);
+        if (deck == null || !deck.getUser().getId().equals(user.getId())) {
+            return new ArrayList<>();
+        }
+
+        List<SrsCardResponse> cramQueue = new ArrayList<>();
+        Iterable<Card> allCards = cardDAO.findByDeck(deck);
+
+        // Add all cards without any filtering
+        for (Card card : allCards) {
+            SrsCardResponse response = new SrsCardResponse();
+            response.setCard(card);
+
+            // Create DeckInfo to avoid circular reference issues
+            DeckInfo deckInfo = new DeckInfo();
+            deckInfo.setId(deck.getId());
+            deckInfo.setName(deck.getName());
+            deckInfo.setTemplateFront(deck.getTemplateFront());
+            deckInfo.setTemplateBack(deck.getTemplateBack());
+            response.setDeck(deckInfo);
+
+            // Set SRS metadata if available
+            Optional<UserCardSrs> srsRecord = userCardSrsDAO.findByUserAndCard(user, card);
+            if (srsRecord.isEmpty()) {
+                response.setNew(true);
+                response.setRepetitions(0);
+            } else {
+                UserCardSrs srs = srsRecord.get();
+                response.setNew(false);
+                response.setNextReviewAt(srs.getNextReviewAt());
+                response.setIntervalDays(srs.getIntervalDays());
+                response.setRepetitions(srs.getRepetitions());
+            }
+
+            cramQueue.add(response);
+        }
+
+        return cramQueue;
+    }
+
+    /**
      * Process a card review.
      *
      * @param authentication Spring Security authentication object
