@@ -123,6 +123,9 @@ public class SrsController {
             }
         }
 
+        // Shuffle
+        java.util.Collections.shuffle(reviewQueue);
+
         return reviewQueue;
     }
 
@@ -185,6 +188,9 @@ public class SrsController {
 
             cramQueue.add(response);
         }
+
+        // Shuffle
+        java.util.Collections.shuffle(cramQueue);
 
         return cramQueue;
     }
