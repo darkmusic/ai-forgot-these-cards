@@ -117,15 +117,17 @@ Here are some screenshots of the application:
    ![Edit Card](res/screenshots/edit_card.png)
 8. **Create Card (With AI Assistance)**:\
    ![Create Card](res/screenshots/create_card.png)
-9. **SRS Review (Front of card, showing Markdown formatting)**:\
+9. **Bulk Entry/Updating of Cards**:\
+   ![Bulk Edit Cards](res/screenshots/bulk_entry.png)
+10. **SRS Review (Front of card, showing Markdown formatting)**:\
    ![SRS Review](res/screenshots/review_front.png)
-10. **SRS Review (Back of card, showing Markdown formatting)**:\
+11. **SRS Review (Back of card, showing Markdown formatting)**:\
    ![SRS Review Back](res/screenshots/review_back.png)
-11. **Cram Session (studying all cards without SRS updates)**:\
+12. **Cram Session (studying all cards without SRS updates)**:\
    ![Cram Session](res/screenshots/cram_session.png)
-12. **Admin Home**:\
+13. **Admin Home**:\
    ![Admin Management](res/screenshots/admin_home.png)
-13. **Add User**:\
+14. **Add User**:\
    ![Add User](res/screenshots/add_user.png)
 
 ## General Remarks
