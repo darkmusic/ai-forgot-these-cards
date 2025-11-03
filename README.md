@@ -42,6 +42,7 @@ Features:
   - Edit card with AI assistance
   - View card
   - Markdown support for card content
+  - Bulk entry/updating of cards
 - Spaced Repetition System (SRS) for reviewing cards
 - Cram mode for studying all cards in a deck without affecting SRS scheduling
 - LaTeX support for rendering mathematical expressions
@@ -323,6 +324,7 @@ make import-db
 - [x] Implement a more sophisticated quiz system with spaced repetition.
 - [x] Add cram mode for studying all cards without affecting SRS scheduling.
 - [x] Add swagger/openapi support for the REST API.
+- [x] Add bulk entry/updating of cards.
 - [ ] Add support for importing/exporting flashcards in different formats (e.g., CSV, YAML, TOML, Anki).
 - [ ] Add profile picture upload support.
 - [ ] Add support for statistics and progress tracking.
