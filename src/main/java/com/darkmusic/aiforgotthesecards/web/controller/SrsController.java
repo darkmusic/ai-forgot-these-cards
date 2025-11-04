@@ -239,7 +239,7 @@ public class SrsController {
      * @return Statistics about the user's SRS progress
      */
     @GetMapping("/api/srs/stats")
-    public SrsStatsResponse getStats(Authentication authentication) {
+    public SrsStatsResponse getStats(Authentication authentication, @RequestParam(required = false) Long deckId) {
         if (authentication == null || authentication.getName() == null) {
             return new SrsStatsResponse();
         }
@@ -252,20 +252,51 @@ public class SrsController {
         LocalDateTime now = LocalDateTime.now();
         List<UserCardSrs> allSrsRecords = userCardSrsDAO.findByUser(user);
 
-        long totalCards = cardDAO.countByDeckUser(user);
-        long reviewedCards = allSrsRecords.size();
-        long newCards = totalCards - reviewedCards;
-        long dueCards = allSrsRecords.stream()
-                .filter(srs -> srs.getNextReviewAt().isBefore(now) || srs.getNextReviewAt().isEqual(now))
-                .count();
-
         SrsStatsResponse stats = new SrsStatsResponse();
-        stats.setTotalCards(totalCards);
-        stats.setReviewedCards(reviewedCards);
-        stats.setNewCards(newCards);
-        stats.setDueCards(dueCards + newCards); // All new cards are also "due"
 
-        return stats;
+        if (deckId != null) {
+            Deck deck = deckDAO.findById(deckId).orElse(null);
+            if (deck == null || !deck.getUser().getId().equals(user.getId())) {
+                return new SrsStatsResponse();
+            }
+
+            // Collect card IDs for this deck
+            java.util.List<Card> deckCards = (java.util.List<Card>) cardDAO.findByDeck(deck);
+            java.util.Set<Long> deckCardIds = new java.util.HashSet<>();
+            for (Card c : deckCards) {
+                if (c.getId() != null) deckCardIds.add(c.getId());
+            }
+
+            long totalCards = deckCards.size();
+            long reviewedCards = allSrsRecords.stream()
+                    .filter(srs -> srs.getCard() != null && deckCardIds.contains(srs.getCard().getId()))
+                    .count();
+            long newCards = totalCards - reviewedCards;
+            long dueReviewed = allSrsRecords.stream()
+                    .filter(srs -> srs.getCard() != null && deckCardIds.contains(srs.getCard().getId()))
+                    .filter(srs -> srs.getNextReviewAt().isBefore(now) || srs.getNextReviewAt().isEqual(now))
+                    .count();
+
+            stats.setTotalCards(totalCards);
+            stats.setReviewedCards(reviewedCards);
+            stats.setNewCards(newCards);
+            stats.setDueCards(dueReviewed + newCards); // All new cards are also "due"
+            return stats;
+        } else {
+            long totalCards = cardDAO.countByDeckUser(user);
+            long reviewedCards = allSrsRecords.size();
+            long newCards = totalCards - reviewedCards;
+            long dueCards = allSrsRecords.stream()
+                    .filter(srs -> srs.getNextReviewAt().isBefore(now) || srs.getNextReviewAt().isEqual(now))
+                    .count();
+
+            stats.setTotalCards(totalCards);
+            stats.setReviewedCards(reviewedCards);
+            stats.setNewCards(newCards);
+            stats.setDueCards(dueCards + newCards); // All new cards are also "due"
+
+            return stats;
+        }
     }
 
     // Inner class for stats response

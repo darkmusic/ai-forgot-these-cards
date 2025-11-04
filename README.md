@@ -44,6 +44,8 @@ Features:
   - Markdown support for card content
   - Bulk entry/updating of cards
 - Spaced Repetition System (SRS) for reviewing cards
+- Deck-level SRS overview in the deck list (Due / New / Reviewed / Total)
+- Start a per-deck SRS Review Session directly from the deck list
 - Cram mode for studying all cards in a deck without affecting SRS scheduling
 - LaTeX support for rendering mathematical expressions
 
@@ -146,11 +148,13 @@ Here are some screenshots of the application:
 The application provides two distinct study modes:
 
 ### Review Mode (SRS-based)
-- Accessed via the main "Review" navigation
+- Accessed via the main "Review" navigation for an all-decks review
 - Shows only cards that are due for review based on the Spaced Repetition System algorithm
 - Includes quality rating buttons (Again, Hard, Good, Easy) after revealing the answer
 - Ratings update the SRS schedule, adjusting when each card will next appear
 - Ideal for efficient long-term retention and optimized study sessions
+
+You can also start a deck-specific review session from the Decks table using the "Start Review Session" action next to a deck. This filters the queue to only cards from that deck that are due (including new/unreviewed cards).
 
 ### Cram Mode (All cards)
 - Accessed via the "Cram" link next to each deck in the deck list
@@ -159,6 +163,15 @@ The application provides two distinct study modes:
 - **Does not update** SRS schedules - perfect for pre-exam cramming or casual review
 - No quality ratings required - just flip through the cards at your own pace
 - Useful for getting familiar with new decks or intensive review before tests
+
+### Deck list SRS columns
+- The Decks table shows SRS counts per deck:
+   - Due: cards due now (includes new cards)
+   - New: cards in the deck that have never been reviewed
+   - Reviewed: cards in the deck that have an existing SRS record
+   - Total: total cards in the deck
+
+These counts help you decide whether to review everything due or focus on a specific deck.
 
 ## Getting Started
 
@@ -304,6 +317,11 @@ make import-db
 ## Swagger Endpoint
 
 - The Swagger UI endpoint is available here: [Swagger UI](http://localhost:8080/swagger-ui/index.html)
+
+### API notes
+- SRS statistics: `GET /api/srs/stats` now accepts an optional `deckId` query parameter.
+   - Without `deckId`, returns aggregate stats across all decks for the authenticated user.
+   - With `deckId`, returns stats scoped to that specific deck (Due/New/Reviewed/Total).
 
 ## Roadmap
 
