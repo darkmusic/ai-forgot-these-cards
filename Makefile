@@ -223,6 +223,7 @@ help:
 	@echo "  nexus-status                  - Show status of Nexus containers."
 	@echo "  nexus-logs                    - Tail Nexus logs."
 	@echo "  nexus-down                    - Stop and remove Nexus containers."
+	@echo "  build-llamacpp-cuda           - Build the llama.cpp CUDA server."
 	@echo "  build-llamacpp-cpu            - Build the llama.cpp CPU server."
 	@echo "  start-llamacpp                - Start the llama.cpp server with specified model and port."
 
@@ -234,8 +235,18 @@ help:
 build-llamacpp-cpu:
 	@echo "Building llama.cpp CPU server..."
 	cd dep/llama.cpp && \
+	   git checkout master && \
 	   git pull && \
 		 cmake -B build && \
+		 cmake --build build --config Release -j 4
+
+.PHONY: build-llamacpp-cuda
+build-llamacpp-cuda:
+	@echo "Building llama.cpp CUDA server..."
+	cd dep/llama.cpp && \
+	   git checkout master && \
+	   git pull && \
+		 cmake -B build -DGGML_CUDA=ON && \
 		 cmake --build build --config Release -j 4
 
 .PHONY: start-llamacpp
