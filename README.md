@@ -216,7 +216,16 @@ To get started with the project, follow these steps:
     1. Note that Llama.cpp can also be manually built if desired, and is included as a submodule in `dep/llama.cpp` for convenience (note that the `make build-llamacpp` target takes care of doing a `git pull` inside the submodule directory and doing a build).
 1. Make sure Llama.cpp is running via `llama-server -m /path/to/model.gguf --port 8087` (add --host if needed). `make start-llamacpp` is provided as a convenience target to start it (be sure to update LLAMA_MODEL_PATH in `.env` beforehand).
 1. Update the `LLAMACPP_URL` setting in `.env` to a URL reachable from inside the `app` container (default may be `http://host.docker.internal:8087` or the LAN IP of your host, depending on your platform).
-1. Build and start the containers (this compiles the backend WAR and the frontend SPA inside Docker images):
+1. Prepare the frontend
+
+  ```bash
+  cd dep/ai-forgot-this-frontend
+  npm install
+  make compile-scss
+  cd ../..
+  ```
+
+1. Back in the root directory, build and start the containers (this compiles the backend WAR and the frontend SPA inside Docker images):
 
    ```bash
    make build-deploy
@@ -273,8 +282,8 @@ To speed up apt operations in the app+web Docker image builds and reduce network
 2) Copy each repository’s HTTP URL and set the corresponding variables in your `.env`:
    ```bash
    # Ubuntu Noble
-   NEXUS_APT_MIRROR_ARCHIVE_UBUNTU_NOBLE_URL=http://localhost:8081/repository/archive.ubuntu.com_noble/
-   NEXUS_APT_MIRROR_SECURITY_UBUNTU_NOBLE_URL=http://localhost:8081/repository/security.ubuntu.com_noble/
+   NEXUS_APT_MIRROR_ARCHIVE_UBUNTU_NOBLE_URL=http://localhost:8081/repository/archive.ubuntu.com-noble-apt-proxy/
+   NEXUS_APT_MIRROR_SECURITY_UBUNTU_NOBLE_URL=http://localhost:8081/repository/security.ubuntu.com-noble-apt-proxy/
 
    # Debian Bookworm
    NEXUS_APT_MIRROR_DEBIAN_BOOKWORM_URL=http://localhost:8081/repository/deb.debian.org-bookworm-apt-proxy/
