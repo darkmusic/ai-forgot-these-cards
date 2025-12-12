@@ -13,7 +13,11 @@ public interface CardDAO extends CrudRepository<Card, Long> {
 
     Iterable<Card> findByDeck(Deck deck);
 
+    Iterable<Card> findByDeckWithTags(Deck deck);
+
     Iterable<Card> findByDeckUser(User user);
+
+    Iterable<Card> findByDeckUserWithTags(User user);
 
     long countByDeckUser(User user);
 }

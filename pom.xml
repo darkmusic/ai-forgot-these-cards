@@ -183,9 +183,6 @@
                         </path>
                     </annotationProcessorPaths>
                     <release>21</release>
-                    <compilerArgs>
-                        <arg>--enable-preview</arg>
-                    </compilerArgs>
                 </configuration>
             </plugin>
 
@@ -197,7 +194,6 @@
                         <include>**/*Test*.java</include>
                     </includes>
                     <reuseForks>true</reuseForks>
-                    <argLine>--enable-preview</argLine>
                 </configuration>
             </plugin>
             <plugin>

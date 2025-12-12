@@ -84,9 +84,9 @@ public class SrsController {
             if (deck == null || !deck.getUser().getId().equals(user.getId())) {
                 return new ArrayList<>();
             }
-            allCards = cardDAO.findByDeck(deck);
+            allCards = cardDAO.findByDeckWithTags(deck);
         } else {
-            allCards = cardDAO.findByDeckUser(user);
+            allCards = cardDAO.findByDeckUserWithTags(user);
         }
 
         // Check each card's SRS status
@@ -158,7 +158,7 @@ public class SrsController {
         }
 
         List<SrsCardResponse> cramQueue = new ArrayList<>();
-        Iterable<Card> allCards = cardDAO.findByDeck(deck);
+        Iterable<Card> allCards = cardDAO.findByDeckWithTags(deck);
 
         // Add all cards without any filtering
         for (Card card : allCards) {

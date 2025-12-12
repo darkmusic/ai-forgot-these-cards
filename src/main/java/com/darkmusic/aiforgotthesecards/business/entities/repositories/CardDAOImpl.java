@@ -29,8 +29,32 @@ public class CardDAOImpl implements CardDAO {
     }
 
     @Override
+    public Iterable<Card> findByDeckWithTags(Deck deck) {
+        return em.createQuery(
+                        "select distinct c from Card c " +
+                                "join fetch c.deck d " +
+                                "left join fetch c.tags t " +
+                                "where d.id = :deckId",
+                        Card.class)
+                .setParameter("deckId", deck.getId())
+                .getResultList();
+    }
+
+    @Override
     public Iterable<Card> findByDeckUser(User user) {
         return em.createQuery("from Card c join fetch c.deck where c.deck.user.id = :userId", Card.class)
+                .setParameter("userId", user.getId())
+                .getResultList();
+    }
+
+    @Override
+    public Iterable<Card> findByDeckUserWithTags(User user) {
+        return em.createQuery(
+                        "select distinct c from Card c " +
+                                "join fetch c.deck d " +
+                                "left join fetch c.tags t " +
+                                "where d.user.id = :userId",
+                        Card.class)
                 .setParameter("userId", user.getId())
                 .getResultList();
     }

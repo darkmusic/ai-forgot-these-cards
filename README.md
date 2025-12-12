@@ -47,6 +47,8 @@ Features:
 - Deck-level SRS overview in the deck list (Due / New / Reviewed / Total)
 - Start a per-deck SRS Review Session directly from the deck list
 - Cram mode for studying all cards in a deck without affecting SRS scheduling
+   - Filter cram sessions by card tags (Any/All match)
+- Tag cloud widget in Cram and Review (font size indicates tag frequency; click tags to quickly filter)
 - LaTeX support for rendering mathematical expressions
 
 Runtime Requirements:
@@ -56,7 +58,7 @@ Runtime Requirements:
 - GNU Make is needed to run the provided Makefile commands.
 - PostgreSQL client tools (psql, pg_dump, pg_restore) are needed for exporting/importing the database locally.
   - Alternatively, you may use the provided Makefile targets to export/import directly from/to the DB container without needing local client tools.
-  
+
 Notes:
 
 - You do not need to install JDK, Maven, or Node.js to build/run. All compilation happens inside Docker images via multi-stage builds.
@@ -155,6 +157,11 @@ The application provides two distinct study modes:
 - Includes quality rating buttons (Again, Hard, Good, Easy) after revealing the answer
 - Ratings update the SRS schedule, adjusting when each card will next appear
 - Ideal for efficient long-term retention and optimized study sessions
+- Optional tag filtering during the session:
+   - Select one or more card tags to filter the review queue
+   - Choose whether cards must match **Any** selected tag (OR) or **All** selected tags (AND)
+   - Tag suggestions are restricted to tags present in the current review queue (or the selected deck, for deck-specific review)
+   - A tag cloud is shown to visualize tag frequency (larger tags appear more often) and can be clicked to toggle the filter
 
 You can also start a deck-specific review session from the Decks table using the "Start Review Session" action next to a deck. This filters the queue to only cards from that deck that are due (including new/unreviewed cards).
 
@@ -165,6 +172,11 @@ You can also start a deck-specific review session from the Decks table using the
 - **Does not update** SRS schedules - perfect for pre-exam cramming or casual review
 - No quality ratings required - just flip through the cards at your own pace
 - Useful for getting familiar with new decks or intensive review before tests
+- Optional tag filtering during the session:
+   - Select one or more card tags to filter the cram queue
+   - Choose whether cards must match **Any** selected tag (OR) or **All** selected tags (AND)
+   - Tag suggestions are restricted to tags that exist on cards in the selected deck
+   - A tag cloud is shown to visualize tag frequency (larger tags appear more often) and can be clicked to toggle the filter
 
 ### Deck list SRS columns
 - The Decks table shows SRS counts per deck:
@@ -231,6 +243,12 @@ To get started with the project, follow these steps:
 
    ```bash
    make build-deploy
+   ```
+
+   To force a clean rebuild (no Docker layer cache), use:
+
+   ```bash
+   make build-deploy-nocache
    ```
 
 1. Open your web browser, navigate to [http://localhost:8086](http://localhost:8086), and log in with username "cards" and password "cards".

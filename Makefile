@@ -27,10 +27,16 @@ USE_NEXUS_MAVEN ?= 0
 # For a custom group named maven-group, use: http://host.docker.internal:8081/repository/maven-group/
 NEXUS_MAVEN_MIRROR_URL ?= http://host.docker.internal:8081/repository/maven-public
 
+# Optional flags for Docker build commands (e.g., --no-cache)
+APP_DOCKER_BUILD_FLAGS ?=
+WEB_DOCKER_BUILD_FLAGS ?=
+
 .PHONY: clean test \
 	drop-and-recreate-db export-db import-db export-db-container import-db-container \
 	build up down restart build-deploy delete-redeploy down-with-volumes tail-tomcat-logs \
-	redeploy-watch build-app-image build-web-image export-delete-redeploy
+	redeploy-watch build-app-image build-web-image export-delete-redeploy \
+	build-app-image-nocache build-web-image-nocache build-nocache \
+	redeploy-app build-deploy-nocache
 
 ########################################################################
 # Local Build Helpers
@@ -94,25 +100,33 @@ build-app-image:
 	@# Conditionally pass a Maven mirror for dependency caching
 	@if [ "$(USE_NEXUS_MAVEN)" = "1" ]; then \
 		echo "Building app image with Maven mirror: $(NEXUS_MAVEN_MIRROR_URL)"; \
-		docker build --add-host=host.docker.internal:host-gateway \
+		docker build $(APP_DOCKER_BUILD_FLAGS) --add-host=host.docker.internal:host-gateway \
 			--build-arg MAVEN_MIRROR_URL="$(NEXUS_MAVEN_MIRROR_URL)" \
 			--build-arg NEXUS_APT_MIRROR_ARCHIVE_UBUNTU_NOBLE_URL="$(NEXUS_APT_MIRROR_ARCHIVE_UBUNTU_NOBLE_URL)" \
 			--build-arg NEXUS_APT_MIRROR_SECURITY_UBUNTU_NOBLE_URL="$(NEXUS_APT_MIRROR_SECURITY_UBUNTU_NOBLE_URL)" \
 			-t "$(APP_IMAGE)" -f dockerfiles/app/Dockerfile .; \
 	else \
-		docker build \
+		docker build $(APP_DOCKER_BUILD_FLAGS) \
 			--build-arg NEXUS_APT_MIRROR_ARCHIVE_UBUNTU_NOBLE_URL="$(NEXUS_APT_MIRROR_ARCHIVE_UBUNTU_NOBLE_URL)" \
 			--build-arg NEXUS_APT_MIRROR_SECURITY_UBUNTU_NOBLE_URL="$(NEXUS_APT_MIRROR_SECURITY_UBUNTU_NOBLE_URL)" \
 			-t "$(APP_IMAGE)" -f dockerfiles/app/Dockerfile .; \
 	fi
 
+build-app-image-nocache: APP_DOCKER_BUILD_FLAGS=--no-cache
+build-app-image-nocache: build-app-image
+
 build-web-image:
-	@docker build -t "$(WEB_IMAGE)" \
+	@docker build $(WEB_DOCKER_BUILD_FLAGS) -t "$(WEB_IMAGE)" \
 		--build-arg NEXUS_APT_MIRROR_DEBIAN_BOOKWORM_URL="$(NEXUS_APT_MIRROR_DEBIAN_BOOKWORM_URL)" \
 		--build-arg NEXUS_APT_MIRROR_SECURITY_DEBIAN_BOOKWORM_URL="$(NEXUS_APT_MIRROR_SECURITY_DEBIAN_BOOKWORM_URL)" \
 		-f dockerfiles/web/Dockerfile .
 
+build-web-image-nocache: WEB_DOCKER_BUILD_FLAGS=--no-cache
+build-web-image-nocache: build-web-image
+
 build: build-app-image build-web-image
+
+build-nocache: build-app-image-nocache build-web-image-nocache
 
 up:
 	@# ensure network and volume
@@ -154,10 +168,14 @@ restart: down up
 stop:
 	@docker stop "$(WEB_CONTAINER)" "$(APP_CONTAINER)" "$(DB_CONTAINER)"
 
-build-deploy: build up
+redeploy-app:
 	@if docker ps -a --format '{{.Names}}' | grep -qx "$(APP_CONTAINER)"; then docker rm -f "$(APP_CONTAINER)"; fi
 	@docker run -d --name "$(APP_CONTAINER)" --network "$(DOCKER_NETWORK)" -p "8080:8080" -p "9090:9090" \
 		--env-file .env "$(APP_IMAGE)"
+
+build-deploy: build up redeploy-app
+
+build-deploy-nocache: build-nocache up redeploy-app
 
 delete-redeploy: down-with-volumes build up
 
@@ -219,14 +237,18 @@ help:
 	@echo "  import-db                     - Import the PostgreSQL database from db/backup.sql."
 	@echo "  import-db-container           - Import the PostgreSQL database from db/backup.sql into the DB container."
 	@echo "  build-app-image               - Build the application Docker image."
+	@echo "  build-app-image-nocache       - Build the application Docker image (no cache)."
 	@echo "  build-web-image               - Build the web Docker image."
+	@echo "  build-web-image-nocache       - Build the web Docker image (no cache)."
 	@echo "  build                         - Build both application and web Docker images."
+	@echo "  build-nocache                 - Build both images (no cache)."
 	@echo "  test                          - Run unit tests."
 	@echo "  up                            - Start the application, database, and web containers."
 	@echo "  down                          - Stop and remove the application, database, and web containers."
 	@echo "  stop                          - Stop the application, database, and web containers."
 	@echo "  restart                       - Restart the application, database, and web containers."
 	@echo "  build-deploy                  - Build images and deploy the application container."
+	@echo "  build-deploy-nocache          - Build images (no cache) and deploy the application container."
 	@echo "  delete-redeploy               - Delete containers and volumes, then rebuild and redeploy."
 	@echo "  export-delete-redeploy        - Export DB, delete containers/volumes, redeploy, and import DB."
 	@echo "  down-with-volumes             - Stop and remove containers and associated volumes."

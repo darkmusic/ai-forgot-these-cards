@@ -18,6 +18,7 @@ Key paths:
 ## Build and run
 - Containerized: run Make targets that build the backend, bundle the SPA, and start containers:
   - `make build-deploy` – builds both Docker images and deploys the app container.
+  - `make build-deploy-nocache` – same, but forces a clean rebuild (`--no-cache`).
   - Open http://localhost:8086 (Nginx). App is on http://localhost:8080.
 - Backend only (local): `./mvnw spring-boot:run` (ensure Postgres is up, e.g., `make up` to start db container).
 - Frontend dev: in `dep/ai-forgot-this-frontend`, run `npm install`, then `npm run dev` for Vite. Production build is driven by Maven via `frontend-maven-plugin` (Node v23.6.1, npm 10.9.2) running `build:dev` then `deploy` (copies to `../../web`).
@@ -66,6 +67,8 @@ Notes on container naming:
 
 ## Frontend notes
 - Avoid creating inline styles; instead add styles to scss files and reference them.
+- Cram and Review sessions support filtering by card tags; the session UIs use `TagWidget` with an optional `availableTags` prop to scope suggestions to tags present in the selected deck (or the current review queue).
+- Cram and Review also show a `TagCloud` widget (see `dep/ai-forgot-this-frontend/src/components/Main/Shared/TagCloud.tsx`) that visualizes tag frequency and can be used to toggle the tag filter.
 
 ## Common tasks
 
