@@ -4,6 +4,7 @@ import java.util.Map;
 
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.Authentication;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.darkmusic.aiforgotthesecards.business.entities.User;
 import com.darkmusic.aiforgotthesecards.business.entities.repositories.UserDAO;
@@ -29,17 +31,50 @@ public class UserController {
         this.userDAO = userDAO;
     }
 
+    private static boolean isAdmin(Authentication authentication) {
+        if (authentication == null) return false;
+        return authentication.getAuthorities().stream().anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
+    }
+
     @PutMapping("/api/user/{id}")
-    public User saveUser(@PathVariable long id, @RequestBody User user) {
-        if (userDAO.findById(id).isPresent()) {
-            return userDAO.save(user);
+    public User saveUser(@PathVariable long id, @RequestBody User user, Authentication authentication) {
+        var existing = userDAO.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        // Always trust the path id over any body id.
+        user.setId(existing.getId());
+
+        if (!isAdmin(authentication)) {
+            var me = userDAO.findByUsername(authentication == null ? null : authentication.getName())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN));
+            if (!me.getId().equals(existing.getId())) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+            }
+
+            // Non-admins can only update their own non-privilege fields.
+            user.setUsername(existing.getUsername());
+            user.setAdmin(existing.isAdmin());
+            user.setActive(existing.isActive());
+            user.setDecks(existing.getDecks());
         }
-        return null;
+
+        return userDAO.save(user);
     }
 
     @GetMapping("/api/user/{id}")
-    public User getUser(@PathVariable long id) {
-        return userDAO.findById(id).orElse(null);
+    public User getUser(@PathVariable long id, Authentication authentication) {
+        var user = userDAO.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        if (isAdmin(authentication)) {
+            return user;
+        }
+
+        var me = userDAO.findByUsername(authentication == null ? null : authentication.getName())
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN));
+        if (!me.getId().equals(user.getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+        return user;
     }
 
     @PostMapping("/api/user")
@@ -61,8 +96,19 @@ public class UserController {
     }
 
     @GetMapping("/api/user/username/{username}")
-    public User getUserByUsername(@PathVariable String username) {
-        return userDAO.findByUsername(username).orElse(null);
+    public User getUserByUsername(@PathVariable String username, Authentication authentication) {
+        var requested = userDAO.findByUsername(username)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        if (isAdmin(authentication)) {
+            return requested;
+        }
+
+        var me = userDAO.findByUsername(authentication == null ? null : authentication.getName())
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN));
+        if (!me.getId().equals(requested.getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+        return requested;
     }
 
     @GetMapping("/api/current-user")

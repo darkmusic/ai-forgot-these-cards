@@ -1,5 +1,6 @@
 package com.darkmusic.aiforgotthesecards.business.entities;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -21,6 +22,7 @@ public class User {
     @Column(name="username", nullable = false)
     private String username;
 
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Column(name="password_hash", nullable = false)
     private String password_hash;
 
@@ -39,7 +41,7 @@ public class User {
 
     @Column(name="profile_pic_url", nullable = false,
             columnDefinition = "varchar(255) default '/vite.svg'") // Default profile picture URL
-    private String profile_pic_url;
+    private String profile_pic_url = "/vite.svg";
 
     @JoinColumn(name="theme_id")
     private Long themeId;

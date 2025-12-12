@@ -54,7 +54,9 @@ Features:
 Runtime Requirements:
 
 - Docker/Rancher Desktop/Podman/etc.
-- Llama.cpp must be installed and running (can be on host or another machine)
+- For AI features, choose one:
+   - **Easy mode**: an API key for a hosted provider (e.g. OpenAI)
+   - **Local mode (optional)**: Llama.cpp running an OpenAI-compatible server (can be on host or another machine)
 - GNU Make is needed to run the provided Makefile commands.
 - PostgreSQL client tools (psql, pg_dump, pg_restore) are needed for exporting/importing the database locally.
   - Alternatively, you may use the provided Makefile targets to export/import directly from/to the DB container without needing local client tools.
@@ -140,7 +142,10 @@ Here are some screenshots of the application:
 ## General Remarks
 
 - This project is a work-in-progress and is intended for educational purposes only.
-- The AI integration is done using [Llama.cpp](https://github.com/ggml-org/llama.cpp), which must be installed and running on your local machine. You will need to download a model in GGUF format, and point to this model when starting the Llama.cpp server. For example, if you have a model named `smollm2-135m.gguf`, you would start the server with the command `llama-server -m /path/to/smollm2-135m.gguf`.
+- AI integration supports two modes:
+   - **Easy mode** (recommended for most users): configure an API key in `.env` (see `SPRING_AI_OPENAI_API_KEY`).
+   - **Local mode**: run [Llama.cpp](https://github.com/ggml-org/llama.cpp) in OpenAI-compatible server mode and point the app at it (see `SPRING_AI_OPENAI_CHAT_BASE_URL`).
+      - You will need to download a model in GGUF format. Example: `llama-server -m /path/to/smollm2-135m.gguf --port 8087 --host 0.0.0.0`.
 - The frontend is a submodule of this repository, so you will need to clone the frontend separately or initialize and update submodules after cloning this repo.
 - The application uses PostgreSQL as the database, and you can run it using Docker, Rancher Desktop, etc.. Alternatively, you can configure it to connect to an existing PostgreSQL server by updating the connection settings in `src/main/resources/application.properties`.
 - AI is provided as assistance, but should not be assumed to be factually correct, especially regarding the intricacies of grammar and language. Always review the AI-generated content before saving it to ensure accuracy and appropriateness for your use case.
@@ -198,7 +203,9 @@ To get started with the project, follow these steps:
      - `SESSION_TIMEOUT`: Session idle timeout before requiring re-authentication (default: 30m). Common values: `30m`, `1h`, `2h`, `3600s`
      - `CONNECTION_TIMEOUT`: Tomcat HTTP connection timeout (default: 20s). Common values: `20s`, `30s`, `1m`
      - `ASYNC_REQUEST_TIMEOUT`: Spring MVC async request timeout (default: 30s). Common values: `30s`, `1m`, `2m`
-     - `LLAMACPP_URL`: URL to Llama.cpp server (default: http://localhost:8087)
+   - `SPRING_AI_OPENAI_API_KEY`: API key for hosted AI (easy mode). Leave blank if using local Llama.cpp.
+   - `SPRING_AI_OPENAI_CHAT_BASE_URL`: Optional override to use a local OpenAI-compatible server (e.g. Llama.cpp), default: `http://host.docker.internal:8087/v1`
+   - `LLAMACPP_URL`: Legacy/compat URL for Llama.cpp (optional; prefer `SPRING_AI_OPENAI_CHAT_BASE_URL`)
      - `DB_URL`, `POSTGRES_USER`, `POSTGRES_PASSWORD`: Database connection settings
      - `USE_NEXUS_MAVEN`: Enable Maven dependency caching via Nexus (optional)
 1. If on Windows, add/edit .wslconfig in your user home folder with settings (adjust as needed for memory, etc.):
@@ -226,11 +233,12 @@ To get started with the project, follow these steps:
    git submodule update --init
    ```
 
-1. Install Llama.cpp and download at least one model in GGUF format (e.g., `llama2` or `smollm2:135m`).
-    1. Note that Llama.cpp can also be manually built if desired, and is included as a submodule in `dep/llama.cpp` for convenience (note that the `make build-llamacpp` target takes care of doing a `git pull` inside the submodule directory and doing a build).
-1. Make sure Llama.cpp is running via `llama-server -m /path/to/model.gguf --port 8087` (add --host if needed). `make start-llamacpp` is provided as a convenience target to start it (be sure to update LLAMA_MODEL_PATH in `.env` beforehand).
-1. Update the `LLAMACPP_URL` setting in `.env` to a URL reachable from inside the `app` container (default may be `http://host.docker.internal:8087` or the LAN IP of your host, depending on your platform).
-1. Prepare the frontend
+1. (Optional) Local AI mode: install Llama.cpp and download at least one model in GGUF format.
+   1. Llama.cpp is included as a submodule in `dep/llama.cpp` for convenience.
+   1. Start it with `make start-llamacpp` (set `LLAMA_MODEL_PATH` and `LLAMACPP_PORT` in `.env`) or run `llama-server` manually.
+   1. If using Docker for the app, set `SPRING_AI_OPENAI_CHAT_BASE_URL` in `.env` to a URL reachable **from inside the container**.
+
+1. (Optional) Prepare the frontend locally (not required for container builds)
 
   ```bash
   cd dep/ai-forgot-this-frontend
@@ -239,7 +247,15 @@ To get started with the project, follow these steps:
   cd ../..
   ```
 
-1. Back in the root directory, build and start the containers (this compiles the backend WAR and the frontend SPA inside Docker images):
+1. Back in the root directory, build and start the containers (this compiles the backend WAR and the frontend SPA inside Docker images).
+
+   Recommended (simpler) deployment: **app + db only** (no Nginx). The app serves both the SPA UI and `/api`:
+
+   ```bash
+   make build-deploy-core
+   ```
+
+   Alternative (full stack / reverse-proxy parity): app + db + Nginx:
 
    ```bash
    make build-deploy
@@ -251,7 +267,10 @@ To get started with the project, follow these steps:
    make build-deploy-nocache
    ```
 
-1. Open your web browser, navigate to [http://localhost:8086](http://localhost:8086), and log in with username "cards" and password "cards".
+1. Open your web browser:
+   - Core stack: [http://localhost:8080](http://localhost:8080)
+   - Full stack (Nginx): [http://localhost:8086](http://localhost:8086)
+   Then log in with username "cards" and password "cards".
 1. Go to the "Admin" section and add a user with the role "USER".
 1. Change the "cards" admin user's password if needed.
 
@@ -350,6 +369,20 @@ make import-db
 
 - The Swagger UI endpoint is available here: [Swagger UI](http://localhost:8080/swagger-ui/index.html)
 
+## Standalone (no Docker) (advanced)
+
+This project produces both a standard WAR and a runnable WAR:
+
+- `target/ai-forgot-these-cards-0.0.1-SNAPSHOT.war` (deploy to Tomcat)
+- `target/ai-forgot-these-cards-0.0.1-SNAPSHOT-exec.war` (run with `java -jar`)
+
+Example:
+
+```bash
+./mvnw -DskipTests package
+java -jar target/ai-forgot-these-cards-0.0.1-SNAPSHOT-exec.war
+```
+
 ### API notes
 - SRS statistics: `GET /api/srs/stats` now accepts an optional `deckId` query parameter.
    - Without `deckId`, returns aggregate stats across all decks for the authenticated user.
@@ -375,6 +408,10 @@ make import-db
 - [x] Add cram mode for studying all cards without affecting SRS scheduling.
 - [x] Add swagger/openapi support for the REST API.
 - [x] Add bulk entry/updating of cards.
+- [x] Add tag filtering in cram and review sessions, with tag cloud widget.
+- [x] Implement OpenAI API key support for easy AI integration.
+- [x] Add "core stack" deployment option (app + db only, no Nginx).
+- [ ] Create low-friction deployment options (e.g., single-container with embedded DB, managed DB service, Pinokio, etc.).
 - [ ] Add support for importing/exporting flashcards in different formats (e.g., CSV, YAML, TOML, Anki).
 - [ ] Add profile picture upload support.
 - [ ] Add support for statistics and progress tracking.

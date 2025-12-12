@@ -22,7 +22,9 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        var user = userDAO.findByUsername(username)
+        String normalized = username == null ? "" : username.trim();
+
+        var user = userDAO.findByUsername(normalized)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
 
         List<GrantedAuthority> authorities = new ArrayList<>();

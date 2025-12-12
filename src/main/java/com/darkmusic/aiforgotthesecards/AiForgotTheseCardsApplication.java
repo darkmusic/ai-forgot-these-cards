@@ -5,14 +5,15 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.DefaultLoginPageConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.logout.CookieClearingLogoutHandler;
 import org.springframework.security.web.util.matcher.RegexRequestMatcher;
 
 import com.darkmusic.aiforgotthesecards.business.entities.services.CustomUserDetailsService;
+import com.darkmusic.aiforgotthesecards.config.BcryptCompatPasswordEncoder;
 
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -25,7 +26,7 @@ public class AiForgotTheseCardsApplication {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        return new BcryptCompatPasswordEncoder();
     }
 
     @Bean
@@ -49,8 +50,8 @@ public class AiForgotTheseCardsApplication {
                         // Secure all other API endpoints
                         .requestMatchers("/api/**").authenticated()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
-                        // Any other request must be authenticated (e.g., /home)
-                        .anyRequest().authenticated())
+                        // Any other non-API request should serve the SPA shell
+                        .anyRequest().permitAll())
                 .headers((headers) -> headers
                         .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin))
                 .cors(Customizer.withDefaults())
@@ -62,6 +63,8 @@ public class AiForgotTheseCardsApplication {
                                 new RegexRequestMatcher("^/api/.*", null)
                         ))
                 .formLogin(form -> form
+                    // Serve the login page from the SPA (prevents Spring Security default login page)
+                    .loginPage("/login")
                     // The backend endpoint that processes the login POST request
                     .loginProcessingUrl("/api/login")
                     // On successful login, return 200 OK, not a redirect
@@ -75,6 +78,11 @@ public class AiForgotTheseCardsApplication {
                         .addLogoutHandler(
                             new CookieClearingLogoutHandler("JSESSIONID", "XSRF-TOKEN"))
                         .logoutSuccessHandler((req,res,auth) -> res.setStatus(HttpServletResponse.SC_NO_CONTENT)));
+
+        DefaultLoginPageConfigurer<HttpSecurity> defaultLoginPage = httpSecurity.getConfigurer(DefaultLoginPageConfigurer.class);
+        if (defaultLoginPage != null) {
+            defaultLoginPage.disable();
+        }
 
         return http.build();
     }

@@ -1,0 +1,29 @@
+# Keep Docker build context small and deterministic.
+# This app image builds the WAR + frontend inside Docker, so we only include source inputs.
+
+# Default deny: ignore everything...
+**
+
+# ...then allowlist only what the app build needs.
+!.mvn/**
+!pom.xml
+!src/**
+!dep/ai-forgot-this-frontend/**
+!dockerfiles/app/Dockerfile
+!dockerfiles/web/**
+
+# Optional: allow these for local dev/docs (harmless if present)
+!mvnw
+!mvnw.cmd
+
+# Still exclude heavy/unneeded parts of the frontend submodule.
+dep/ai-forgot-this-frontend/node_modules
+dep/ai-forgot-this-frontend/dist
+dep/ai-forgot-this-frontend/node
+
+# Exclude generated frontend output that is copied into the WAR at build time.
+# This keeps the context small and avoids accidentally baking stale bundles.
+src/main/resources/static/**
+
+# Exclude large optional dependency (not needed to build the WAR)
+dep/llama.cpp

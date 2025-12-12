@@ -50,11 +50,19 @@ RUN if [ -n "$MAVEN_MIRROR_URL" ]; then \
 # -Dmaven.test.skip=true skips both test run and compilation to avoid test-only sources
 RUN mvn -B -Dmaven.test.skip=true package
 
+# Normalize the build output so the runtime stage can always COPY a single file.
+# With Spring Boot, we may produce both a standard WAR and an additional runnable *-exec.war.
+RUN set -eux; \
+	war="$(ls -1 target/*.war | grep -v -- '-exec\.war$' | head -n 1)"; \
+	cp "$war" target/ROOT.war
+
 # Runtime image: Tomcat + the built WAR
 FROM tomcat:11.0.12-jdk21-temurin
 
 RUN rm -rf /usr/local/tomcat/webapps/*
-COPY --from=build /workspace/target/*.war /usr/local/tomcat/webapps/ROOT.war
+
+COPY --from=build /workspace/target/ROOT.war /usr/local/tomcat/webapps/ROOT.war
+
 ENV JAVA_OPTS="-Xms512m -Xmx1024m -Djava.security.egd=file:/dev/./urandom"
 EXPOSE 8080
 CMD [ "catalina.sh", "run" ]

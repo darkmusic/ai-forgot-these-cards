@@ -31,6 +31,13 @@ NEXUS_MAVEN_MIRROR_URL ?= http://host.docker.internal:8081/repository/maven-publ
 APP_DOCKER_BUILD_FLAGS ?=
 WEB_DOCKER_BUILD_FLAGS ?=
 
+# Linux helper so containers can reach services running on the host
+DOCKER_HOST_GATEWAY ?= --add-host=host.docker.internal:host-gateway
+
+# Allow overriding ports via .env (APP_SERVER_PORT already exists there)
+APP_SERVER_PORT ?= 8080
+WEB_HOST_PORT ?= 8086
+
 .PHONY: clean test \
 	drop-and-recreate-db export-db import-db export-db-container import-db-container \
 	build up down restart build-deploy delete-redeploy down-with-volumes tail-tomcat-logs \
@@ -82,12 +89,12 @@ export-db-container:
 	@docker cp "$(DB_CONTAINER):/tmp/backup.sql" "db/backup.sql"
 
 import-db: drop-and-recreate-db
-  	# Pause for a few seconds to ensure the DB is ready to accept connections
+	# Pause for a few seconds to ensure the DB is ready to accept connections
 	@sleep 5
-	pg_restore -h localhost -p 5433 -U "$(POSTGRES_USER)" -W -F c -v -d "$(POSTGRES_DB)" db/backup.sql
+	@pg_restore -h localhost -p 5433 -U "$(POSTGRES_USER)" -W -F c -v -d "$(POSTGRES_DB)" db/backup.sql
 
 import-db-container: drop-and-recreate-db
-  	# Pause for a few seconds to ensure the DB is ready to accept connections
+	# Pause for a few seconds to ensure the DB is ready to accept connections
 	@sleep 5
 	@docker cp "db/backup.sql" "$(DB_CONTAINER):/tmp/backup.sql"
 	@docker exec -it "$(DB_CONTAINER)" sh -lc "pg_restore -h localhost -U \"$(POSTGRES_USER)\" -W -F c -v -d \"$(POSTGRES_DB)\" /tmp/backup.sql"
@@ -144,7 +151,7 @@ up:
 
 	@# app: create or start
 	@if ! docker ps -a --format '{{.Names}}' | grep -qx "$(APP_CONTAINER)"; then \
-		docker run -d --name "$(APP_CONTAINER)" --network "$(DOCKER_NETWORK)" -p "8080:8080" -p "9090:9090" \
+		docker run $(DOCKER_HOST_GATEWAY) -d --name "$(APP_CONTAINER)" --network "$(DOCKER_NETWORK)" -p "$(APP_SERVER_PORT):8080" -p "9090:9090" \
 			--env-file .env "$(APP_IMAGE)"; \
 	else \
 		if ! docker ps --format '{{.Names}}' | grep -qx "$(APP_CONTAINER)"; then docker start "$(APP_CONTAINER)"; fi; \
@@ -152,7 +159,7 @@ up:
 
 	@# web: create or start
 	@if ! docker ps -a --format '{{.Names}}' | grep -qx "$(WEB_CONTAINER)"; then \
-		docker run -d --name "$(WEB_CONTAINER)" --network "$(DOCKER_NETWORK)" -p "8086:80" --env-file .env \
+		docker run -d --name "$(WEB_CONTAINER)" --network "$(DOCKER_NETWORK)" -p "$(WEB_HOST_PORT):80" --env-file .env \
 			"$(WEB_IMAGE)"; \
 	else \
 		if ! docker ps --format '{{.Names}}' | grep -qx "$(WEB_CONTAINER)"; then docker start "$(WEB_CONTAINER)"; fi; \
@@ -168,14 +175,21 @@ restart: down up
 stop:
 	@docker stop "$(WEB_CONTAINER)" "$(APP_CONTAINER)" "$(DB_CONTAINER)"
 
+
 redeploy-app:
 	@if docker ps -a --format '{{.Names}}' | grep -qx "$(APP_CONTAINER)"; then docker rm -f "$(APP_CONTAINER)"; fi
-	@docker run -d --name "$(APP_CONTAINER)" --network "$(DOCKER_NETWORK)" -p "8080:8080" -p "9090:9090" \
+	@docker run $(DOCKER_HOST_GATEWAY) -d --name "$(APP_CONTAINER)" --network "$(DOCKER_NETWORK)" -p "$(APP_SERVER_PORT):8080" -p "9090:9090" \
 		--env-file .env "$(APP_IMAGE)"
 
-build-deploy: build up redeploy-app
+build-deploy:
+	@$(MAKE) build
+	@$(MAKE) up
+	@$(MAKE) redeploy-app
 
-build-deploy-nocache: build-nocache up redeploy-app
+build-deploy-nocache:
+	@$(MAKE) build-nocache
+	@$(MAKE) up
+	@$(MAKE) redeploy-app
 
 delete-redeploy: down-with-volumes build up
 
@@ -244,15 +258,22 @@ help:
 	@echo "  build-nocache                 - Build both images (no cache)."
 	@echo "  test                          - Run unit tests."
 	@echo "  up                            - Start the application, database, and web containers."
+	@echo "  up-core                       - Start only the application + database containers (no Nginx)."
+	@echo "  build-core-nocache            - Build the application Docker image (no cache) (core stack)."
 	@echo "  down                          - Stop and remove the application, database, and web containers."
+	@echo "  down-core                     - Stop and remove only the application + database containers."
 	@echo "  stop                          - Stop the application, database, and web containers."
+	@echo "  stop-core                     - Stop only the application + database containers."
 	@echo "  restart                       - Restart the application, database, and web containers."
 	@echo "  build-deploy                  - Build images and deploy the application container."
+	@echo "  build-deploy-core             - Build the app image and deploy the core stack (app + db only)."
+	@echo "  build-deploy-core-nocache     - Build the app image (no cache) and deploy the core stack (app + db only)."
 	@echo "  build-deploy-nocache          - Build images (no cache) and deploy the application container."
 	@echo "  delete-redeploy               - Delete containers and volumes, then rebuild and redeploy."
 	@echo "  export-delete-redeploy        - Export DB, delete containers/volumes, redeploy, and import DB."
 	@echo "  down-with-volumes             - Stop and remove containers and associated volumes."
 	@echo "  tail-tomcat-logs              - Tail the logs of the application container."
+	@echo "  tail-core-logs                - Tail the logs of the application container (core stack)."
 	@echo "  redeploy-watch                - Redeploy and watch application logs."
 	@echo "  nexus-up                      - Start Sonatype Nexus (data + server) for Maven caching on port 8081."
 	@echo "  nexus-status                  - Show status of Nexus containers."
@@ -287,3 +308,55 @@ build-llamacpp-cuda:
 .PHONY: start-llamacpp
 start-llamacpp:
 	@./dep/llama.cpp/build/bin/llama-server --model $(LLAMA_MODEL_PATH) --port $(LLAMACPP_PORT) --host 0.0.0.0
+
+.PHONY: up-core down-core stop-core build-core build-core-nocache build-deploy-core build-deploy-core-nocache tail-core-logs
+
+build-core: build-app-image
+
+build-core-nocache: build-app-image-nocache
+
+up-core:
+	@# ensure network and volume
+	@docker network inspect "$(DOCKER_NETWORK)" >/dev/null 2>&1 || docker network create "$(DOCKER_NETWORK)"
+	@docker volume inspect "$(DB_VOLUME)" >/dev/null 2>&1 || docker volume create "$(DB_VOLUME)" >/dev/null
+
+	@# db: create or start
+	@if ! docker ps -a --format '{{.Names}}' | grep -qx "$(DB_CONTAINER)"; then \
+		docker run -d --name "$(DB_CONTAINER)" --network "$(DOCKER_NETWORK)" -p "5433:5432" \
+			--env-file .env -v "$(DB_VOLUME):/var/lib/postgresql/data" \
+			postgres:17 postgres -c max_locks_per_transaction=1024 -c shared_buffers=1GB -c shared_preload_libraries=pg_stat_statements -c pg_stat_statements.track=all -c max_connections=200 -c listen_addresses='*'; \
+	else \
+		if ! docker ps --format '{{.Names}}' | grep -qx "$(DB_CONTAINER)"; then docker start "$(DB_CONTAINER)"; fi; \
+	fi
+
+	@# app: create or start
+	@if ! docker ps -a --format '{{.Names}}' | grep -qx "$(APP_CONTAINER)"; then \
+		docker run $(DOCKER_HOST_GATEWAY) -d --name "$(APP_CONTAINER)" --network "$(DOCKER_NETWORK)" -p "$(APP_SERVER_PORT):8080" -p "9090:9090" \
+			--env-file .env "$(APP_IMAGE)"; \
+	else \
+		if ! docker ps --format '{{.Names}}' | grep -qx "$(APP_CONTAINER)"; then docker start "$(APP_CONTAINER)"; fi; \
+	fi
+
+	@echo "Core stack is up."
+	@echo "UI + API: http://localhost:$(APP_SERVER_PORT)"
+	@echo "API base: http://localhost:$(APP_SERVER_PORT)/api"
+
+down-core:
+	@if docker ps -a --format '{{.Names}}' | grep -qx "$(APP_CONTAINER)"; then docker rm -f "$(APP_CONTAINER)"; fi
+	@if docker ps -a --format '{{.Names}}' | grep -qx "$(DB_CONTAINER)"; then docker rm -f "$(DB_CONTAINER)"; fi
+
+stop-core:
+	@docker stop "$(APP_CONTAINER)" "$(DB_CONTAINER)"
+
+tail-core-logs:
+	@docker logs -f "$(APP_CONTAINER)"
+
+build-deploy-core:
+	@$(MAKE) build-core
+	@$(MAKE) up-core
+	@$(MAKE) redeploy-app
+
+build-deploy-core-nocache:
+	@$(MAKE) build-core-nocache
+	@$(MAKE) up-core
+	@$(MAKE) redeploy-app

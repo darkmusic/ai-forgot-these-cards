@@ -39,3 +39,11 @@ src/main/webapp/
 /web
 notes.md
 .env
+nimcache
+testresults
+src/test/nim/tests/smoke/core
+src/test/nim/tests/smoke/core.exe
+src/test/nim/tests/smoke/nginx
+src/test/nim/tests/smoke/nginx.exe
+src/test/nim/tests/smoke/smoke_api
+src/test/nim/tests/smoke/smoke_api.exe
