@@ -54,7 +54,9 @@ Runtime Requirements:
 - Docker/Rancher Desktop/Podman/etc.
 - Llama.cpp must be installed and running (can be on host or another machine)
 - GNU Make is needed to run the provided Makefile commands.
-
+- PostgreSQL client tools (psql, pg_dump, pg_restore) are needed for exporting/importing the database locally.
+  - Alternatively, you may use the provided Makefile targets to export/import directly from/to the DB container without needing local client tools.
+  
 Notes:
 
 - You do not need to install JDK, Maven, or Node.js to build/run. All compilation happens inside Docker images via multi-stage builds.
@@ -303,6 +305,7 @@ Notes:
 
 1. This will first delete the existing backup, so back up the backup if you want to keep it.
 1. You will be required to enter the password when this runs.
+1. By default, this assumes you have the PostgreSQL client tools installed locally. If you want to export from the DB container instead, use the `export-db-container` target.
 
 ```bash
 make export-db
@@ -314,6 +317,8 @@ Notes:
 
 1. This will drop the current database, so be sure you have exported it first!
 1. You will be required to enter the password when this runs.
+1. You must have a valid `db/backup.sql` file to import from.
+1. By default, this assumes you have the PostgreSQL client tools installed locally. If you want to import into the DB container instead, use the `import-db-container` target.
 
 ```bash
 make import-db

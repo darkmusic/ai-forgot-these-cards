@@ -28,7 +28,7 @@ USE_NEXUS_MAVEN ?= 0
 NEXUS_MAVEN_MIRROR_URL ?= http://host.docker.internal:8081/repository/maven-public
 
 .PHONY: clean test \
-	drop-and-recreate-db export-db import-db \
+	drop-and-recreate-db export-db import-db export-db-container import-db-container \
 	build up down restart build-deploy delete-redeploy down-with-volumes tail-tomcat-logs \
 	redeploy-watch build-app-image build-web-image export-delete-redeploy
 
@@ -60,9 +60,15 @@ drop-and-recreate-db:
 	@# start db
 	@docker run -d --name "$(DB_CONTAINER)" --network "$(DOCKER_NETWORK)" -p "5433:5432" \
 		--env-file .env -v "$(DB_VOLUME):/var/lib/postgresql/data" \
-		postgres:latest postgres -c max_locks_per_transaction=1024 -c shared_buffers=1GB -c shared_preload_libraries=pg_stat_statements -c pg_stat_statements.track=all -c max_connections=200 -c listen_addresses='*'
+		postgres:17 postgres -c max_locks_per_transaction=1024 -c shared_buffers=1GB -c shared_preload_libraries=pg_stat_statements -c pg_stat_statements.track=all -c max_connections=200 -c listen_addresses='*'
 
 export-db:
+	@mkdir -p db
+	@pg_dump -h localhost -p 5433 -U "$(POSTGRES_USER)" -W -F c -b -v -f /tmp/backup.sql "$(POSTGRES_DB)"
+	@rm -f db/backup.sql
+	@mv /tmp/backup.sql db/backup.sql
+
+export-db-container:
 	@mkdir -p db
 	@docker exec -t "$(DB_CONTAINER)" sh -lc 'rm -f /tmp/backup.sql'
 	@docker exec -it "$(DB_CONTAINER)" sh -lc "pg_dump -h localhost -U \"$(POSTGRES_USER)\" -W -F c -b -v -f /tmp/backup.sql \"$(POSTGRES_DB)\""
@@ -70,7 +76,12 @@ export-db:
 	@docker cp "$(DB_CONTAINER):/tmp/backup.sql" "db/backup.sql"
 
 import-db: drop-and-recreate-db
-  # Pause for a few seconds to ensure the DB is ready to accept connections
+  	# Pause for a few seconds to ensure the DB is ready to accept connections
+	@sleep 5
+	pg_restore -h localhost -p 5433 -U "$(POSTGRES_USER)" -W -F c -v -d "$(POSTGRES_DB)" db/backup.sql
+
+import-db-container: drop-and-recreate-db
+  	# Pause for a few seconds to ensure the DB is ready to accept connections
 	@sleep 5
 	@docker cp "db/backup.sql" "$(DB_CONTAINER):/tmp/backup.sql"
 	@docker exec -it "$(DB_CONTAINER)" sh -lc "pg_restore -h localhost -U \"$(POSTGRES_USER)\" -W -F c -v -d \"$(POSTGRES_DB)\" /tmp/backup.sql"
@@ -112,7 +123,7 @@ up:
 	@if ! docker ps -a --format '{{.Names}}' | grep -qx "$(DB_CONTAINER)"; then \
 		docker run -d --name "$(DB_CONTAINER)" --network "$(DOCKER_NETWORK)" -p "5433:5432" \
 			--env-file .env -v "$(DB_VOLUME):/var/lib/postgresql/data" \
-			postgres:latest postgres -c max_locks_per_transaction=1024 -c shared_buffers=1GB -c shared_preload_libraries=pg_stat_statements -c pg_stat_statements.track=all -c max_connections=200 -c listen_addresses='*'; \
+			postgres:17 postgres -c max_locks_per_transaction=1024 -c shared_buffers=1GB -c shared_preload_libraries=pg_stat_statements -c pg_stat_statements.track=all -c max_connections=200 -c listen_addresses='*'; \
 	else \
 		if ! docker ps --format '{{.Names}}' | grep -qx "$(DB_CONTAINER)"; then docker start "$(DB_CONTAINER)"; fi; \
 	fi
@@ -204,7 +215,9 @@ help:
 	@echo "  clean                         - Clean target directories."
 	@echo "  drop-and-recreate-db          - Drop and recreate the PostgreSQL database."
 	@echo "  export-db                     - Export the PostgreSQL database to db/backup.sql."
+	@echo "  export-db-container           - Export the PostgreSQL database from the DB container to db/backup.sql."
 	@echo "  import-db                     - Import the PostgreSQL database from db/backup.sql."
+	@echo "  import-db-container           - Import the PostgreSQL database from db/backup.sql into the DB container."
 	@echo "  build-app-image               - Build the application Docker image."
 	@echo "  build-web-image               - Build the web Docker image."
 	@echo "  build                         - Build both application and web Docker images."
