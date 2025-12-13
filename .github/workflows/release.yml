@@ -14,6 +14,11 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: Init frontend submodule only
+      run: |
+        git submodule sync -- dep/ai-forgot-this-frontend
+        git submodule update --init --depth 1 dep/ai-forgot-this-frontend
+
     - name: Set up JDK 21
       uses: actions/setup-java@v4
       with:

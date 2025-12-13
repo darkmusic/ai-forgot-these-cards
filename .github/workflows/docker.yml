@@ -26,6 +26,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Init frontend submodule only
+        run: |
+          git submodule sync -- dep/ai-forgot-this-frontend
+          git submodule update --init --depth 1 dep/ai-forgot-this-frontend
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
