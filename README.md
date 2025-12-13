@@ -75,6 +75,8 @@ Tip: You can speed up Docker builds by enabling an optional local Maven cache vi
 
 ### Application architecture
 
+This diagram shows the main components of the application and their interactions.
+
 ```mermaid
 flowchart TD
    subgraph Frontend
@@ -111,7 +113,9 @@ flowchart TD
    APP -.->|Maven deps optional| NEXUS
 ```
 
-### Container architecture
+### Deployment architecture
+
+This diagram shows both container-based stacks and true containerless (local `java -jar`) options.
 
 ```mermaid
 flowchart TD
