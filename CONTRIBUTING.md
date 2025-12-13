@@ -41,8 +41,7 @@ Creating the release triggers the WAR workflow.
 
 On pushes to `main` and on semver-like tags, CI builds:
 
-- `ghcr.io/<owner>/ai-forgot-these-cards-app-full:<tag>`
-- `ghcr.io/<owner>/ai-forgot-these-cards-app-core:<tag>`
+- `ghcr.io/<owner>/ai-forgot-these-cards-app:<tag>`
 - `ghcr.io/<owner>/ai-forgot-these-cards-web:<tag>`
 
 Tag behavior:
@@ -50,8 +49,6 @@ Tag behavior:
 - On `main`: publishes `:latest` and `:sha-...`
 - On `vMAJOR.MINOR.PATCH` tags: publishes `:vMAJOR.MINOR.PATCH` (and `:sha-...`)
 - On pull requests: builds but does **not** push
-
-Note: “app-full” vs “app-core” are deployment/topology concepts; both are built from the same application Dockerfile.
 
 #### WAR artifacts (attached to the GitHub Release)
 
@@ -64,4 +61,4 @@ On `release: created`, CI runs `./mvnw -DskipTests package` and uploads:
 
 - GitHub Actions shows both workflows succeeded for the release
 - The GitHub Release page has the WAR files and `checksums.sha256`
-- GHCR shows `vMAJOR.MINOR.PATCH` tags for the three images
+- GHCR shows `vMAJOR.MINOR.PATCH` tags for the two images

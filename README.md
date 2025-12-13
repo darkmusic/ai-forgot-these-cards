@@ -119,6 +119,8 @@ flowchart TD
 
 This diagram shows both container-based stacks and true containerless (local `java -jar`) options.
 
+Note: “Full” vs “Core” is a deployment/topology choice (whether you run Nginx in front, and how you wire things up via environment variables, typically from [.env](.env)). The backend itself is the same application in all cases; there is a single backend image in CI.
+
 ```mermaid
 flowchart TD
 

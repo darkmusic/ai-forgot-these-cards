@@ -15,8 +15,7 @@ permissions:
 
 env:
   REGISTRY: ghcr.io
-  APP_FULL_IMAGE: ghcr.io/${{ github.repository_owner }}/ai-forgot-these-cards-app-full
-  APP_CORE_IMAGE: ghcr.io/${{ github.repository_owner }}/ai-forgot-these-cards-app-core
+  APP_IMAGE: ghcr.io/${{ github.repository_owner }}/ai-forgot-these-cards-app
   WEB_IMAGE: ghcr.io/${{ github.repository_owner }}/ai-forgot-these-cards-web
 
 jobs:
@@ -41,45 +40,24 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Docker metadata (app-full)
-        id: meta_app_full
+      - name: Docker metadata (app)
+        id: meta_app
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.APP_FULL_IMAGE }}
+          images: ${{ env.APP_IMAGE }}
           tags: |
             type=sha
             type=raw,value=latest,enable={{is_default_branch}}
             type=ref,event=tag
 
-      - name: Build (and optionally push) app-full
+      - name: Build (and optionally push) app
         uses: docker/build-push-action@v6
         with:
           context: .
           file: dockerfiles/app/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta_app_full.outputs.tags }}
-          labels: ${{ steps.meta_app_full.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Docker metadata (app-core)
-        id: meta_app_core
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.APP_CORE_IMAGE }}
-          tags: |
-            type=sha
-            type=raw,value=latest,enable={{is_default_branch}}
-            type=ref,event=tag
-
-      - name: Build (and optionally push) app-core
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: dockerfiles/app/Dockerfile
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta_app_core.outputs.tags }}
-          labels: ${{ steps.meta_app_core.outputs.labels }}
+          tags: ${{ steps.meta_app.outputs.tags }}
+          labels: ${{ steps.meta_app.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

@@ -19,8 +19,8 @@ RUN sh /configure-apt-mirrors.sh
 # then run the frontend build. Keep cache cleaned to keep the image small.
 RUN apt-get update && apt-get upgrade -y && apt-get clean && rm -rf /var/lib/apt/lists/* \
 	&& npm ci \
-	&& npm run build:prod \
 	&& ./node_modules/.bin/sass src/scss:src/css \
+	&& npm run build:prod \
 	&& mkdir -p /app/web \
 	&& cp -r dist/* /app/web/
 
