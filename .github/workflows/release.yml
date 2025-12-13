@@ -26,6 +26,14 @@ jobs:
         java-version: '21'
         cache: maven
 
+    - name: Set Maven version from release tag
+      run: |
+        set -euo pipefail
+        version="${{ github.event.release.tag_name }}"
+        version="${version#v}"
+        echo "Setting Maven version to $version"
+        ./mvnw -B -DgenerateBackupPoms=false versions:set -DnewVersion="$version"
+
     - name: Build WARs
       run: ./mvnw -B -DskipTests package
 

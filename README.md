@@ -507,14 +507,14 @@ Notes:
 
 This project produces both a standard WAR and a runnable WAR:
 
-- `target/ai-forgot-these-cards-0.0.1-SNAPSHOT.war` (deploy to Tomcat)
-- `target/ai-forgot-these-cards-0.0.1-SNAPSHOT-exec.war` (run with `java -jar`)
+- `target/ai-forgot-these-cards-<version>.war` (deploy to Tomcat)
+- `target/ai-forgot-these-cards-<version>-exec.war` (run with `java -jar`)
 
 Example:
 
 ```bash
 ./mvnw -DskipTests package
-java -jar target/ai-forgot-these-cards-0.0.1-SNAPSHOT-exec.war
+java -jar target/ai-forgot-these-cards-<version>-exec.war
 ```
 
 True containerless single-file mode (SQLite):
@@ -546,7 +546,7 @@ Notes:
 - If you don’t want to run Postgres locally, you can run in SQLite mode:
 
    ```bash
-   DB_VENDOR=sqlite SQLITE_DB_PATH=./db/cards.db java -jar target/ai-forgot-these-cards-0.0.1-SNAPSHOT-exec.war
+   DB_VENDOR=sqlite SQLITE_DB_PATH=./db/cards.db java -jar target/ai-forgot-these-cards-<version>-exec.war
    ```
 
 AI provider selection (optional):
