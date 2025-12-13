@@ -431,6 +431,17 @@ Example:
 java -jar target/ai-forgot-these-cards-0.0.1-SNAPSHOT-exec.war
 ```
 
+Notes:
+
+- By default, the executable WAR will try to connect to Postgres on `localhost:5433` (matching the Makefile’s DB container port mapping). You must have a Postgres server running there.
+   - Easiest option: start the DB container via `make up-core` (or `make up`) in another terminal.
+   - If you use a locally-installed Postgres on `5432`, set `DB_URL=jdbc:postgresql://localhost:5432/cards`.
+- If you don’t want to run Postgres locally, you can run in SQLite mode:
+
+   ```bash
+   DB_VENDOR=sqlite SQLITE_DB_PATH=./db/cards.db java -jar target/ai-forgot-these-cards-0.0.1-SNAPSHOT-exec.war
+   ```
+
 ### API notes
 - SRS statistics: `GET /api/srs/stats` now accepts an optional `deckId` query parameter.
    - Without `deckId`, returns aggregate stats across all decks for the authenticated user.
