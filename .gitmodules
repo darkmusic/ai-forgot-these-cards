@@ -1,6 +1,6 @@
 [submodule "dep/ai-forgot-this-frontend"]
 	path = dep/ai-forgot-this-frontend
-	url = git@github.com:darkmusic/ai-forgot-this-frontend
+	url = https://github.com/darkmusic/ai-forgot-this-frontend
 [submodule "dep/llama.cpp"]
 	path = dep/llama.cpp
 	url = https://github.com/ggml-org/llama.cpp
