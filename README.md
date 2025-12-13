@@ -32,13 +32,13 @@ This project consists of two parts:
 
 Features:
 
-- Fully containerized with Docker/Rancher Desktop/Podman/etc.
+- Fully containerless or fully/partially containerized solution with Docker/Rancher Desktop/Podman/etc.
 - User management
 - Admin management
 - Spring Security
-- Optional Maven/APT dependency caching
+- (optional) Maven/APT dependency caching
 - User profiles
-- Llama.cpp integration
+- OpenAI / OpenAI-Compatible / Llama.cpp integration
   - Chat with a model
 - Deck management
 - Card management
@@ -57,8 +57,8 @@ Features:
 
 Runtime Requirements:
 
-- Docker/Rancher Desktop/Podman/etc.
-   - Optional: if you run the executable WAR (`*-exec.war`) in SQLite single-file mode, you can run fully standalone with no containers.
+- (optional) Docker/Rancher Desktop/Podman/etc.
+   - If you run the executable WAR (`*-exec.war`) in SQLite single-file mode, you can run fully standalone with no containers.
 - A database (choose one):
    - **PostgreSQL** (default; typically run via the provided Docker targets)
    - **SQLite** single-file mode (optional; uses a persisted `.db` file)
@@ -66,7 +66,7 @@ Runtime Requirements:
    - **Easy mode**: an API key for a hosted provider (e.g. OpenAI)
    - **Local mode (optional)**: Llama.cpp running an OpenAI-compatible server (can be on host or another machine)
 - GNU Make is needed to run the provided Makefile commands.
-- PostgreSQL client tools (psql, pg_dump, pg_restore) are only needed if you use the Postgres-specific `db/backup.sql` export/import targets locally.
+- (optional) PostgreSQL client tools (psql, pg_dump, pg_restore) are only needed if you use the Postgres-specific `db/backup.sql` export/import targets locally.
   - If you export/import via the DB container (`*-container` targets) or use SQLite mode / portable migrations, you do not need local Postgres client tools.
 
 Notes:
