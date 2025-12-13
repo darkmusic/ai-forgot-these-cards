@@ -1,4 +1,4 @@
-import std/httpclient, std/strformat, std/strutils, std/json, std/tables, std/uri, std/times
+import std/httpclient, std/strformat, std/strutils, std/json, std/tables, std/uri, std/times, std/os
 
 type Session* = object
   client*: HttpClient
@@ -118,6 +118,33 @@ proc forbidRole*(obj: JsonNode, role: string) =
 proc uniqueUsername*(prefix: string = "nonadmin_live_"): string =
   result = prefix & $getTime().toUnix() & "_" & $getTime().nanosecond
 
+proc waitForHealthy*(baseUrl: string, timeoutMs: int = 30000, intervalMs: int = 500) =
+  ## Wait until the app reports healthy (Spring Boot actuator) to reduce flakes
+  ## when the stack just started (e.g., Hibernate schema init / SQLite file creation).
+  var sess = initSession(baseUrl)
+  let deadline = getTime() + initDuration(milliseconds = timeoutMs)
+  var lastMsg = "(no response)"
+
+  while true:
+    try:
+      let resp = request(sess, HttpGet, "/actuator/health")
+      lastMsg = fmt"HTTP {resp.code.int} {resp.body}"
+      if resp.code == Http200:
+        try:
+          let j = parseJson(resp.body)
+          if j.kind == JObject and j.hasKey("status") and j["status"].getStr() == "UP":
+            return
+        except CatchableError:
+          discard
+    except OSError:
+      lastMsg = "connection refused"
+
+    if getTime() >= deadline:
+      raise newException(AssertionDefect,
+        fmt"Timed out waiting for {baseUrl} to become healthy. Last response: {lastMsg}")
+
+    sleep(intervalMs)
+
 proc runLiveApiSmoke*(
   baseUrl: string,
   adminUser: string = "cards",
@@ -130,6 +157,9 @@ proc runLiveApiSmoke*(
 
   var admin = initSession(baseUrl)
   var nonadmin = initSession(baseUrl)
+
+  # Make sure the server is fully started (not just accepting connections).
+  waitForHealthy(baseUrl)
 
   # Fail fast with a helpful message if the stack isn't up.
   try:
@@ -192,7 +222,9 @@ proc runLiveApiSmoke*(
     "Content-Type": "application/json"
   })
   let createResp = request(admin, HttpPost, "/api/user", body = $createPayload, extra = createHeaders)
-  assert createResp.code in {Http200, Http201}
+  if createResp.code notin {Http200, Http201}:
+    raise newException(AssertionDefect,
+      fmt"create user failed (expected 200/201, got {createResp.code.int})\nBody:\n{createResp.body}")
   let createdUserJson = parseJson(createResp.body)
   assertJsonLacks(createdUserJson, "password_hash", "password_hash leaked in create-user response")
   createdUserId = requireJsonInt(createdUserJson, "id")

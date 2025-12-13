@@ -71,6 +71,8 @@ Notes:
 
 Tip: You can speed up Docker builds by enabling an optional local Maven cache via Sonatype Nexus 3. See "Optional: Maven dependency cache (Nexus)" below.
 
+Release process: see [CONTRIBUTING.md](CONTRIBUTING.md#releases).
+
 ## Architecture
 
 ### Application architecture

@@ -1,0 +1,37 @@
+name: Release WAR Artifacts
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        distribution: temurin
+        java-version: '21'
+        cache: maven
+
+    - name: Build WARs
+      run: ./mvnw -B -DskipTests package
+
+    - name: Create checksums
+      run: |
+        cd target
+        sha256sum *.war > checksums.sha256
+
+    - name: Upload WARs to the GitHub Release
+      uses: softprops/action-gh-release@v2
+      with:
+        files: |
+          target/*.war
+          target/checksums.sha256
