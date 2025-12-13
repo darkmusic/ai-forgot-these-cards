@@ -1,5 +1,9 @@
 # Ai Forgot These Cards
 
+[![Java CI with Maven](https://github.com/darkmusic/ai-forgot-these-cards/actions/workflows/maven.yml/badge.svg)](https://github.com/darkmusic/ai-forgot-these-cards/actions/workflows/maven.yml)
+[![Build Docker Images](https://github.com/darkmusic/ai-forgot-these-cards/actions/workflows/docker.yml/badge.svg)](https://github.com/darkmusic/ai-forgot-these-cards/actions/workflows/docker.yml)
+[![Release WAR Artifacts](https://github.com/darkmusic/ai-forgot-these-cards/actions/workflows/release.yml/badge.svg)](https://github.com/darkmusic/ai-forgot-these-cards/actions/workflows/release.yml)
+
 This is an AI-assisted flashcard creation and quiz website.
 
 The _AI-assisted_ part initially enables chatting with an LLM during creation/editing of a flashcard.
