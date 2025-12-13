@@ -297,7 +297,7 @@ To get started with the project, follow these steps:
      - `CONNECTION_TIMEOUT`: Tomcat HTTP connection timeout (default: 20s). Common values: `20s`, `30s`, `1m`
      - `ASYNC_REQUEST_TIMEOUT`: Spring MVC async request timeout (default: 30s). Common values: `30s`, `1m`, `2m`
    - `SPRING_AI_OPENAI_API_KEY`: API key for hosted AI (easy mode). Leave blank if using local Llama.cpp.
-   - `SPRING_AI_OPENAI_CHAT_BASE_URL`: Optional override to use a local OpenAI-compatible server (e.g. Llama.cpp), default: `http://host.docker.internal:8087/v1`
+   - `SPRING_AI_OPENAI_CHAT_BASE_URL`: Optional override to use a local OpenAI-compatible server (e.g. Llama.cpp), default: `http://host.docker.internal:8087` (Spring AI appends `/v1` internally)
    - `LLAMACPP_URL`: Legacy/compat URL for Llama.cpp (optional; prefer `SPRING_AI_OPENAI_CHAT_BASE_URL`)
      - `DB_URL`, `POSTGRES_USER`, `POSTGRES_PASSWORD`: Database connection settings
      - `USE_NEXUS_MAVEN`: Enable Maven dependency caching via Nexus (optional)

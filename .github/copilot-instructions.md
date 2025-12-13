@@ -51,7 +51,7 @@ Notes on container naming:
 ## Llama.cpp integration
 - `AiController` uses `org.springframework.ai.chat.client.ChatClient`:
   - `POST /api/ai/chat` sends a single user message and persists Q/A to `AiChat`.
-- Base URL configured via `spring.ai.openai.chat.base-url` (defaults to `http://localhost:8080/v1`). Ensure llama-server is running (see `make build-llamacpp-cpu` and `make start-llamacpp`).
+- Base URL configured via `spring.ai.openai.chat.base-url` (defaults to `http://localhost:8087`). Ensure llama-server is running (see `make build-llamacpp-cpu` and `make start-llamacpp`).
   **Note:** By default, the backend uses port 8080; to avoid conflicts, run llama-server on a different port (e.g., 8087) and update the base URL accordingly.
   Note: `make start-llamacpp` requires the parameters `LLAMA_MODEL_PATH` and `LLAMACPP_PORT`, e.g.
   `make start-llamacpp LLAMA_MODEL_PATH=/path/to/model.gguf LLAMACPP_PORT=8080`
