@@ -65,12 +65,60 @@ PORTABLE_IMPORT_MODE ?= truncate
 	build-app-image-nocache build-web-image-nocache build-nocache \
 	redeploy-app build-deploy-nocache \
 	up-sqlite up-core-sqlite redeploy-app-sqlite build-deploy-sqlite build-deploy-sqlite-nocache \
+	run-standalone-sqlite run-standalone-postgres \
 	portable-export-postgres portable-export-sqlite portable-import-postgres portable-import-sqlite validate-portable \
 	migrate-postgres-to-sqlite migrate-sqlite-to-postgres
 
 ########################################################################
 # Local Build Helpers
 ########################################################################
+
+# True containerless, single-file mode: runs the executable WAR with SQLite.
+# - Reads optional settings from .env (AI provider config, ports, etc)
+# - Persists the DB as a local file (default: ./db/cards.db)
+run-standalone-sqlite:
+	@set -euo pipefail; \
+		mkdir -p db; \
+		war="$$(ls -1 target/*-exec.war 2>/dev/null | head -n 1 || true)"; \
+		if [ -z "$$war" ]; then \
+			echo "No executable WAR found under target/. Building with ./mvnw -DskipTests package ..."; \
+			./mvnw -DskipTests package; \
+			war="$$(ls -1 target/*-exec.war 2>/dev/null | head -n 1 || true)"; \
+		fi; \
+		if [ -z "$$war" ]; then \
+			echo "ERROR: executable WAR not found (expected target/*-exec.war)"; \
+			exit 1; \
+		fi; \
+		set -a; \
+			[ -f .env ] && . ./.env || true; \
+		set +a; \
+		sqlite_path="$${SQLITE_DB_PATH:-./db/cards.db}"; \
+		echo "Running $$war"; \
+		echo "SQLite DB: $$sqlite_path"; \
+		DB_VENDOR=sqlite SQLITE_DB_PATH="$$sqlite_path" java -jar "$$war"
+
+# True containerless mode with an external Postgres.
+# - Reads optional settings from .env (AI provider config, DB_URL override, ports, etc)
+# - Defaults to localhost:5433 to match the Makefile's db container mapping, but you can override with DB_URL.
+run-standalone-postgres:
+	@set -euo pipefail; \
+		war="$$(ls -1 target/*-exec.war 2>/dev/null | head -n 1 || true)"; \
+		if [ -z "$$war" ]; then \
+			echo "No executable WAR found under target/. Building with ./mvnw -DskipTests package ..."; \
+			./mvnw -DskipTests package; \
+			war="$$(ls -1 target/*-exec.war 2>/dev/null | head -n 1 || true)"; \
+		fi; \
+		if [ -z "$$war" ]; then \
+			echo "ERROR: executable WAR not found (expected target/*-exec.war)"; \
+			exit 1; \
+		fi; \
+		set -a; \
+			[ -f .env ] && . ./.env || true; \
+		set +a; \
+		db_url="$${DB_URL:-jdbc:postgresql://localhost:5433/$${POSTGRES_DB:-cards}}"; \
+		echo "Running $$war"; \
+		echo "Postgres: $$db_url"; \
+		DB_VENDOR=postgres DB_URL="$$db_url" java -jar "$$war"
 
 clean:
 	@echo "Cleaning target directory."
@@ -499,6 +547,8 @@ help:
 	@echo "  build-llamacpp-cuda           - Build the llama.cpp CUDA server."
 	@echo "  build-llamacpp-cpu            - Build the llama.cpp CPU server."
 	@echo "  start-llamacpp                - Start the llama.cpp server with specified model and port."
+	@echo "  run-standalone-sqlite         - Run the executable WAR locally with SQLite single-file DB (no containers)."
+	@echo "  run-standalone-postgres       - Run the executable WAR locally with an external Postgres (no containers)."
 
 #######################################################################
 # Llamacpp Commands

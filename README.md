@@ -54,12 +54,16 @@ Features:
 Runtime Requirements:
 
 - Docker/Rancher Desktop/Podman/etc.
+   - Optional: if you run the executable WAR (`*-exec.war`) in SQLite single-file mode, you can run fully standalone with no containers.
+- A database (choose one):
+   - **PostgreSQL** (default; typically run via the provided Docker targets)
+   - **SQLite** single-file mode (optional; uses a persisted `.db` file)
 - For AI features, choose one:
    - **Easy mode**: an API key for a hosted provider (e.g. OpenAI)
    - **Local mode (optional)**: Llama.cpp running an OpenAI-compatible server (can be on host or another machine)
 - GNU Make is needed to run the provided Makefile commands.
-- PostgreSQL client tools (psql, pg_dump, pg_restore) are needed for exporting/importing the database locally.
-  - Alternatively, you may use the provided Makefile targets to export/import directly from/to the DB container without needing local client tools.
+- PostgreSQL client tools (psql, pg_dump, pg_restore) are only needed if you use the Postgres-specific `db/backup.sql` export/import targets locally.
+  - If you export/import via the DB container (`*-container` targets) or use SQLite mode / portable migrations, you do not need local Postgres client tools.
 
 Notes:
 
@@ -73,37 +77,111 @@ Tip: You can speed up Docker builds by enabling an optional local Maven cache vi
 
 ```mermaid
 flowchart TD
-    subgraph Backend
-        A[Java Spring Boot Application]
-        B[PostgreSQL Database]
-        C[Llama.cpp AI Service]
-        E[Sonatype Nexus]
-    end
+   subgraph Frontend
+      SPA[React SPA]
+   end
 
-    subgraph Frontend
-        D[React Application]
-    end
+   subgraph Backend
+      APP["Java Spring Boot<br/>Tomcat exec WAR"]
+      JPA[JPA/Hibernate]
 
-    D -->|HTTP Requests| A
-    A -->|JPA/Hibernate| B
-    A -->|Llama.cpp API Calls| C
-    A -->|Maven Package Requests| E
+      subgraph DB["Database - choose one"]
+         PG[(PostgreSQL)]
+         SQLITE[(SQLite single-file DB)]
+      end
+
+      subgraph AI["AI provider - optional"]
+         CHAT["Spring AI ChatClient<br/>OpenAI-compatible API"]
+         OPENAI["OpenAI hosted"]
+         LLAMA["Llama.cpp server<br/>OpenAI-compatible"]
+      end
+
+      NEXUS["Sonatype Nexus - optional build-time cache"]
+   end
+
+   SPA -->|HTTP| APP
+   APP --> JPA
+   JPA -->|DB_VENDOR=postgres| PG
+   JPA -->|DB_VENDOR=sqlite| SQLITE
+
+   APP -->|Chat requests optional| CHAT
+   CHAT -->|Hosted| OPENAI
+   CHAT -->|Local/remote| LLAMA
+
+   APP -.->|Maven deps optional| NEXUS
 ```
 
 ### Container architecture
 
 ```mermaid
 flowchart TD
-    subgraph Containers
-        A[Tomcat/Spring Backend]
-        B[Nginx/React Frontend]
-        C[PostgreSQL DB]
-        D[Sonatype Nexus]
-    end
 
-    B -->|REST API calls| A
-    A -->|Database calls| C
-    A -->|Maven package requests| D
+   subgraph AI["AI provider - optional"]
+      OPENAI2["OpenAI hosted"]
+      LLAMA2["Llama.cpp server<br/>OpenAI-compatible"]
+   end
+
+   subgraph Full["Full stack"]
+      T_FULL["make up"]
+      WEB["Nginx<br/>serves SPA<br/>proxies /api"]
+      APP1["App container<br/>Tomcat"]
+      PG1[(Postgres container)]
+      T_FULL -.-> WEB
+      WEB -->|/api/*| APP1
+      APP1 -->|JPA/Hibernate| PG1
+      APP1 -->|AI optional| OPENAI2
+      APP1 -->|AI optional| LLAMA2
+   end
+
+   subgraph Core["Core stack"]
+      T_CORE["make up-core"]
+      APP2["App container<br/>Tomcat"]
+      PG2[(Postgres container)]
+      T_CORE -.-> APP2
+      APP2 -->|JPA/Hibernate| PG2
+      APP2 -->|AI optional| OPENAI2
+      APP2 -->|AI optional| LLAMA2
+   end
+
+   subgraph SQLiteFull["SQLite single-file + Nginx"]
+      T_SQLITE_FULL["make up-sqlite"]
+      WEB2["Nginx<br/>serves SPA<br/>proxies /api"]
+      APP3["App container<br/>Tomcat<br/>DB_VENDOR=sqlite"]
+      SQLITEFILE[(./db/cards.db)]
+      T_SQLITE_FULL -.-> WEB2
+      WEB2 -->|/api/*| APP3
+      APP3 -->|SQLite file I/O| SQLITEFILE
+      APP3 -->|AI optional| OPENAI2
+      APP3 -->|AI optional| LLAMA2
+   end
+
+   subgraph SQLiteCore["SQLite single-file core"]
+      T_SQLITE_CORE["make up-core-sqlite"]
+      APP4["App container<br/>Tomcat<br/>DB_VENDOR=sqlite"]
+      SQLITEFILE2[(./db/cards.db)]
+      T_SQLITE_CORE -.-> APP4
+      APP4 -->|SQLite file I/O| SQLITEFILE2
+      APP4 -->|AI optional| OPENAI2
+      APP4 -->|AI optional| LLAMA2
+   end
+
+   subgraph Standalone["Standalone - no containers"]
+      T_STANDALONE_SQLITE["make run-standalone-sqlite"]
+      JVM_SQLITE["Local Java<br/>java -jar *-exec.war<br/>DB_VENDOR=sqlite"]
+      SQLITEFILE3[(./db/cards.db)]
+      T_STANDALONE_SQLITE -.-> JVM_SQLITE
+      JVM_SQLITE -->|SQLite file I/O| SQLITEFILE3
+      JVM_SQLITE -->|AI optional| OPENAI2
+      JVM_SQLITE -->|AI optional| LLAMA2
+
+      T_STANDALONE_PG["make run-standalone-postgres"]
+      JVM_PG["Local Java<br/>java -jar *-exec.war<br/>DB_VENDOR=postgres"]
+      PG_EXT[(External Postgres)]
+      T_STANDALONE_PG -.-> JVM_PG
+      JVM_PG -->|JPA/Hibernate| PG_EXT
+      JVM_PG -->|AI optional| OPENAI2
+      JVM_PG -->|AI optional| LLAMA2
+   end
 ```
 
 ## Screenshots
@@ -431,6 +509,27 @@ Example:
 java -jar target/ai-forgot-these-cards-0.0.1-SNAPSHOT-exec.war
 ```
 
+True containerless single-file mode (SQLite):
+
+```bash
+make run-standalone-sqlite
+```
+
+True containerless mode with an external Postgres:
+
+```bash
+make run-standalone-postgres
+```
+
+Notes:
+
+- This expects a Postgres server reachable at the default `DB_URL` (`jdbc:postgresql://localhost:5433/cards`) unless you override `DB_URL`.
+- Example override for a locally-installed Postgres on `5432`:
+
+   ```bash
+   DB_URL=jdbc:postgresql://localhost:5432/cards make run-standalone-postgres
+   ```
+
 Notes:
 
 - By default, the executable WAR will try to connect to Postgres on `localhost:5433` (matching the Makefile’s DB container port mapping). You must have a Postgres server running there.
@@ -441,6 +540,11 @@ Notes:
    ```bash
    DB_VENDOR=sqlite SQLITE_DB_PATH=./db/cards.db java -jar target/ai-forgot-these-cards-0.0.1-SNAPSHOT-exec.war
    ```
+
+AI provider selection (optional):
+
+- Hosted (OpenAI): set `SPRING_AI_OPENAI_API_KEY` (typically in `.env`)
+- Local/remote (Llama.cpp OpenAI-compatible): set `SPRING_AI_OPENAI_CHAT_BASE_URL` (typically in `.env`)
 
 ### API notes
 - SRS statistics: `GET /api/srs/stats` now accepts an optional `deckId` query parameter.
