@@ -33,14 +33,13 @@ public class User {
     @JsonManagedReference
     private Set<Deck> decks;
 
-    @Column(name="is_admin", nullable = false, columnDefinition = "boolean default false")
+    @Column(name="is_admin", nullable = false)
     private boolean isAdmin;
 
-    @Column(name="is_active", nullable = false, columnDefinition = "boolean default true")
-    private boolean isActive;
+    @Column(name="is_active", nullable = false)
+    private boolean isActive = true;
 
-    @Column(name="profile_pic_url", nullable = false,
-            columnDefinition = "varchar(255) default '/vite.svg'") // Default profile picture URL
+    @Column(name="profile_pic_url", nullable = false)
     private String profile_pic_url = "/vite.svg";
 
     @JoinColumn(name="theme_id")

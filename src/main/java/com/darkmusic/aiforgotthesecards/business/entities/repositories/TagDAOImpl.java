@@ -45,7 +45,7 @@ public class TagDAOImpl implements TagDAO {
 
     @Override
     public boolean existsById(Long aLong) {
-        return findById(aLong) != null;
+        return findById(aLong).isPresent();
     }
 
     @Override
@@ -60,7 +60,7 @@ public class TagDAOImpl implements TagDAO {
 
     @Override
     public long count() {
-        return em.createQuery("select count(*) from Tag", Integer.class).getSingleResult();
+        return em.createQuery("select count(*) from Tag", Long.class).getSingleResult();
     }
 
     @Override

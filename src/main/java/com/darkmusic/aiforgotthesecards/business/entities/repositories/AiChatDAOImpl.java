@@ -46,7 +46,7 @@ public class AiChatDAOImpl implements AiChatDAO {
 
     @Override
     public boolean existsById(Long aLong) {
-        return findById(aLong) != null;
+        return findById(aLong).isPresent();
     }
 
     @Override
@@ -61,7 +61,7 @@ public class AiChatDAOImpl implements AiChatDAO {
 
     @Override
     public long count() {
-        return em.createQuery("select count(*) from AiChat", Integer.class).getSingleResult();
+        return em.createQuery("select count(*) from AiChat", Long.class).getSingleResult();
     }
 
     @Override

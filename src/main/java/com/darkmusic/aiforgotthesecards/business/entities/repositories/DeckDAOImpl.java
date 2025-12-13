@@ -53,7 +53,7 @@ public class DeckDAOImpl implements DeckDAO {
 
     @Override
     public boolean existsById(Long aLong) {
-        return findById(aLong) != null;
+        return findById(aLong).isPresent();
     }
 
     @Override
@@ -68,7 +68,7 @@ public class DeckDAOImpl implements DeckDAO {
 
     @Override
     public long count() {
-        return em.createQuery("select count(*) from Deck", Integer.class).getSingleResult();
+        return em.createQuery("select count(*) from Deck", Long.class).getSingleResult();
     }
 
     @Override

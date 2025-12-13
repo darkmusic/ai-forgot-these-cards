@@ -3,6 +3,8 @@ package com.darkmusic.aiforgotthesecards.business.entities;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Setter
 @Getter
@@ -14,10 +16,12 @@ public class AiChat {
     @Column(name="id", nullable = false)
     private Long id;
 
-    @Column(name="question", columnDefinition = "text", nullable = false)
+    @JdbcTypeCode(SqlTypes.LONGVARCHAR)
+    @Column(name="question", nullable = false)
     private String question;
 
-    @Column(name="answer", columnDefinition = "text")
+    @JdbcTypeCode(SqlTypes.LONGVARCHAR)
+    @Column(name="answer")
     private String answer;
 
     @JoinColumn(name = "user_id", nullable = false)

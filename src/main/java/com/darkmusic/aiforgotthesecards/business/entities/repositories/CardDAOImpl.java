@@ -93,7 +93,7 @@ public class CardDAOImpl implements CardDAO {
 
     @Override
     public boolean existsById(Long aLong) {
-        return findById(aLong) != null;
+        return findById(aLong).isPresent();
     }
 
     @Override
@@ -108,7 +108,7 @@ public class CardDAOImpl implements CardDAO {
 
     @Override
     public long count() {
-        return em.createQuery("select count(*) from Card", Integer.class).getSingleResult();
+        return em.createQuery("select count(*) from Card", Long.class).getSingleResult();
     }
 
     @Override

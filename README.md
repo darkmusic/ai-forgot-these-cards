@@ -147,7 +147,10 @@ Here are some screenshots of the application:
    - **Local mode**: run [Llama.cpp](https://github.com/ggml-org/llama.cpp) in OpenAI-compatible server mode and point the app at it (see `SPRING_AI_OPENAI_CHAT_BASE_URL`).
       - You will need to download a model in GGUF format. Example: `llama-server -m /path/to/smollm2-135m.gguf --port 8087 --host 0.0.0.0`.
 - The frontend is a submodule of this repository, so you will need to clone the frontend separately or initialize and update submodules after cloning this repo.
-- The application uses PostgreSQL as the database, and you can run it using Docker, Rancher Desktop, etc.. Alternatively, you can configure it to connect to an existing PostgreSQL server by updating the connection settings in `src/main/resources/application.properties`.
+- The application uses PostgreSQL as the default database.
+   - Optional: SQLite single-file mode for deployments where you want a single persisted `.db` file.
+      - Set `DB_VENDOR=sqlite`
+      - Optionally override the file path with `SQLITE_DB_PATH` (default: `./db/cards.db`)
 - AI is provided as assistance, but should not be assumed to be factually correct, especially regarding the intricacies of grammar and language. Always review the AI-generated content before saving it to ensure accuracy and appropriateness for your use case.
 - Different models may provide different results, and the output quality will depend on the model used and the input provided.
 - The loading of tensors by Llama.cpp can be slow, especially for larger models. Be patient while the model is loading.
@@ -340,7 +343,8 @@ This will export the database to `db/backup.sql`.
 
 Notes:
 
-1. This will first delete the existing backup, so back up the backup if you want to keep it.
+1. If `db/backup.sql` already exists, it is archived as `db/backup1.sql`, `db/backup2.sql`, etc.
+   - To see what backups you have, run: `make list-backups`
 1. You will be required to enter the password when this runs.
 1. By default, this assumes you have the PostgreSQL client tools installed locally. If you want to export from the DB container instead, use the `export-db-container` target.
 
@@ -360,6 +364,50 @@ Notes:
 ```bash
 make import-db
 ```
+
+## Portable migrations (Postgres <-> SQLite)
+
+In addition to `db/backup.sql` (Postgres-only), the project supports a vendor-neutral **portable dump** format (ZIP + JSONL) for migrating data between Postgres and SQLite.
+
+Artifacts:
+
+- `db/portable-dump.zip` (portable dump ZIP)
+- `db/cards.db` (SQLite database file; used when `DB_VENDOR=sqlite`)
+
+Common workflows:
+
+```bash
+# Postgres -> SQLite (overwrites db/cards.db by default)
+make migrate-postgres-to-sqlite
+
+# SQLite -> Postgres (imports into the Postgres DB container)
+make migrate-sqlite-to-postgres
+```
+
+Advanced usage:
+
+```bash
+# Export only
+make portable-export-postgres
+make portable-export-sqlite
+
+# Validate structure of db/portable-dump.zip
+make validate-portable
+
+# Import only (defaults to truncating target tables first)
+make portable-import-postgres
+make portable-import-sqlite
+
+# Safer import mode (fails if target DB is not empty)
+PORTABLE_IMPORT_MODE=fail-if-not-empty make portable-import-postgres
+PORTABLE_IMPORT_MODE=fail-if-not-empty make portable-import-sqlite
+```
+
+Notes:
+
+- These targets do **not** use `db/backup.sql`; they read/write `db/portable-dump.zip` and (for SQLite) `db/cards.db`.
+- The wrapper targets (`migrate-*`) run export then import **sequentially** to avoid issues in environments that set parallel make flags.
+- `make validate-portable` runs inside the app container (runnable WAR) and may initialize the application context; treat it as a validation tool for the ZIP structure (not a pure read-only operation).
 
 ## Actuator Endpoints
 
@@ -411,6 +459,7 @@ java -jar target/ai-forgot-these-cards-0.0.1-SNAPSHOT-exec.war
 - [x] Add tag filtering in cram and review sessions, with tag cloud widget.
 - [x] Implement OpenAI API key support for easy AI integration.
 - [x] Add "core stack" deployment option (app + db only, no Nginx).
+- [x] Add SQLite single-file mode as an alternative to PostgreSQL for simpler deployments.
 - [ ] Create low-friction deployment options (e.g., single-container with embedded DB, managed DB service, Pinokio, etc.).
 - [ ] Add support for importing/exporting flashcards in different formats (e.g., CSV, YAML, TOML, Anki).
 - [ ] Add profile picture upload support.

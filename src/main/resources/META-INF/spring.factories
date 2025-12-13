@@ -1,2 +1,3 @@
 org.springframework.boot.env.EnvironmentPostProcessor=\
-com.darkmusic.aiforgotthesecards.config.OpenAiApiKeyDefaultingEnvironmentPostProcessor
+com.darkmusic.aiforgotthesecards.config.OpenAiApiKeyDefaultingEnvironmentPostProcessor,\
+com.darkmusic.aiforgotthesecards.config.DatabaseVendorEnvironmentPostProcessor

@@ -15,6 +15,7 @@ DB_VOLUME := pgdata
 ifneq (,$(wildcard .env))
 include .env
 export USE_NEXUS_MAVEN NEXUS_MAVEN_MIRROR_URL POSTGRES_USER POSTGRES_DB
+export DB_VENDOR SQLITE_DB_PATH
 export NEXUS_APT_MIRROR_ARCHIVE_UBUNTU_NOBLE_URL NEXUS_APT_MIRROR_SECURITY_UBUNTU_NOBLE_URL
 export NEXUS_APT_MIRROR_DEBIAN_BOOKWORM_URL NEXUS_APT_MIRROR_SECURITY_DEBIAN_BOOKWORM_URL
 endif
@@ -38,12 +39,34 @@ DOCKER_HOST_GATEWAY ?= --add-host=host.docker.internal:host-gateway
 APP_SERVER_PORT ?= 8080
 WEB_HOST_PORT ?= 8086
 
+# Database vendor selection (default: postgres). If DB_VENDOR=sqlite, we skip creating the Postgres container.
+DB_VENDOR ?= postgres
+
+# SQLite single-file mode helpers (used by up-sqlite targets)
+SQLITE_HOST_DIR ?= ./db
+SQLITE_CONTAINER_DIR ?= /db
+SQLITE_CONTAINER_DB_PATH ?= $(SQLITE_CONTAINER_DIR)/cards.db
+SQLITE_HOST_DIR_ABS = $(abspath $(SQLITE_HOST_DIR))
+
+# Portable dump helpers (export/import between DB vendors)
+PORTABLE_DUMP_HOST_DIR ?= ./db
+PORTABLE_DUMP_HOST_DIR_ABS = $(abspath $(PORTABLE_DUMP_HOST_DIR))
+PORTABLE_DUMP_CONTAINER_DIR ?= /db
+PORTABLE_DUMP_FILE ?= portable-dump.zip
+PORTABLE_DUMP_CONTAINER_PATH ?= $(PORTABLE_DUMP_CONTAINER_DIR)/$(PORTABLE_DUMP_FILE)
+PORTABLE_DUMP_HOST_PATH ?= $(PORTABLE_DUMP_HOST_DIR)/$(PORTABLE_DUMP_FILE)
+PORTABLE_IMPORT_MODE ?= truncate
+
 .PHONY: clean test \
 	drop-and-recreate-db export-db import-db export-db-container import-db-container \
+	list-backups \
 	build up down restart build-deploy delete-redeploy down-with-volumes tail-tomcat-logs \
 	redeploy-watch build-app-image build-web-image export-delete-redeploy \
 	build-app-image-nocache build-web-image-nocache build-nocache \
-	redeploy-app build-deploy-nocache
+	redeploy-app build-deploy-nocache \
+	up-sqlite up-core-sqlite redeploy-app-sqlite build-deploy-sqlite build-deploy-sqlite-nocache \
+	portable-export-postgres portable-export-sqlite portable-import-postgres portable-import-sqlite validate-portable \
+	migrate-postgres-to-sqlite migrate-sqlite-to-postgres
 
 ########################################################################
 # Local Build Helpers
@@ -76,17 +99,30 @@ drop-and-recreate-db:
 		postgres:17 postgres -c max_locks_per_transaction=1024 -c shared_buffers=1GB -c shared_preload_libraries=pg_stat_statements -c pg_stat_statements.track=all -c max_connections=200 -c listen_addresses='*'
 
 export-db:
-	@mkdir -p db
-	@pg_dump -h localhost -p 5433 -U "$(POSTGRES_USER)" -W -F c -b -v -f /tmp/backup.sql "$(POSTGRES_DB)"
-	@rm -f db/backup.sql
-	@mv /tmp/backup.sql db/backup.sql
+	@set -e; \
+		mkdir -p db; \
+		if [ -f db/backup.sql ]; then \
+			i=1; \
+			while [ -f "db/backup$${i}.sql" ]; do i=$$((i+1)); done; \
+			mv db/backup.sql "db/backup$${i}.sql"; \
+			echo "Archived existing db/backup.sql -> db/backup$${i}.sql"; \
+		fi; \
+		rm -f /tmp/backup.sql; \
+		pg_dump -h localhost -p 5433 -U "$(POSTGRES_USER)" -W -F c -b -v -f /tmp/backup.sql "$(POSTGRES_DB)"; \
+		mv /tmp/backup.sql db/backup.sql
 
 export-db-container:
-	@mkdir -p db
-	@docker exec -t "$(DB_CONTAINER)" sh -lc 'rm -f /tmp/backup.sql'
-	@docker exec -it "$(DB_CONTAINER)" sh -lc "pg_dump -h localhost -U \"$(POSTGRES_USER)\" -W -F c -b -v -f /tmp/backup.sql \"$(POSTGRES_DB)\""
-	@rm -f db/backup.sql
-	@docker cp "$(DB_CONTAINER):/tmp/backup.sql" "db/backup.sql"
+	@set -e; \
+		mkdir -p db; \
+		if [ -f db/backup.sql ]; then \
+			i=1; \
+			while [ -f "db/backup$${i}.sql" ]; do i=$$((i+1)); done; \
+			mv db/backup.sql "db/backup$${i}.sql"; \
+			echo "Archived existing db/backup.sql -> db/backup$${i}.sql"; \
+		fi; \
+		docker exec -t "$(DB_CONTAINER)" sh -lc 'rm -f /tmp/backup.sql'; \
+		docker exec -it "$(DB_CONTAINER)" sh -lc "pg_dump -h localhost -U \"$(POSTGRES_USER)\" -W -F c -b -v -f /tmp/backup.sql \"$(POSTGRES_DB)\""; \
+		docker cp "$(DB_CONTAINER):/tmp/backup.sql" "db/backup.sql"
 
 import-db: drop-and-recreate-db
 	# Pause for a few seconds to ensure the DB is ready to accept connections
@@ -98,6 +134,14 @@ import-db-container: drop-and-recreate-db
 	@sleep 5
 	@docker cp "db/backup.sql" "$(DB_CONTAINER):/tmp/backup.sql"
 	@docker exec -it "$(DB_CONTAINER)" sh -lc "pg_restore -h localhost -U \"$(POSTGRES_USER)\" -W -F c -v -d \"$(POSTGRES_DB)\" /tmp/backup.sql"
+
+list-backups:
+	@mkdir -p db
+	@if ls db/backup*.sql >/dev/null 2>&1; then \
+		ls -1 db/backup*.sql 2>/dev/null | sort -V; \
+	else \
+		echo "No backups found in db/"; \
+	fi
 
 #######################################################################
 # Docker Commands (no docker compose)
@@ -138,15 +182,19 @@ build-nocache: build-app-image-nocache build-web-image-nocache
 up:
 	@# ensure network and volume
 	@docker network inspect "$(DOCKER_NETWORK)" >/dev/null 2>&1 || docker network create "$(DOCKER_NETWORK)"
-	@docker volume inspect "$(DB_VOLUME)" >/dev/null 2>&1 || docker volume create "$(DB_VOLUME)" >/dev/null
+	@if [ "$(DB_VENDOR)" != "sqlite" ]; then \
+		docker volume inspect "$(DB_VOLUME)" >/dev/null 2>&1 || docker volume create "$(DB_VOLUME)" >/dev/null; \
+	fi
 
-	@# db: create or start
-	@if ! docker ps -a --format '{{.Names}}' | grep -qx "$(DB_CONTAINER)"; then \
-		docker run -d --name "$(DB_CONTAINER)" --network "$(DOCKER_NETWORK)" -p "5433:5432" \
-			--env-file .env -v "$(DB_VOLUME):/var/lib/postgresql/data" \
-			postgres:17 postgres -c max_locks_per_transaction=1024 -c shared_buffers=1GB -c shared_preload_libraries=pg_stat_statements -c pg_stat_statements.track=all -c max_connections=200 -c listen_addresses='*'; \
-	else \
-		if ! docker ps --format '{{.Names}}' | grep -qx "$(DB_CONTAINER)"; then docker start "$(DB_CONTAINER)"; fi; \
+	@# db (postgres): create or start (skipped when DB_VENDOR=sqlite)
+	@if [ "$(DB_VENDOR)" != "sqlite" ]; then \
+		if ! docker ps -a --format '{{.Names}}' | grep -qx "$(DB_CONTAINER)"; then \
+			docker run -d --name "$(DB_CONTAINER)" --network "$(DOCKER_NETWORK)" -p "5433:5432" \
+				--env-file .env -v "$(DB_VOLUME):/var/lib/postgresql/data" \
+				postgres:17 postgres -c max_locks_per_transaction=1024 -c shared_buffers=1GB -c shared_preload_libraries=pg_stat_statements -c pg_stat_statements.track=all -c max_connections=200 -c listen_addresses='*'; \
+		else \
+			if ! docker ps --format '{{.Names}}' | grep -qx "$(DB_CONTAINER)"; then docker start "$(DB_CONTAINER)"; fi; \
+		fi; \
 	fi
 
 	@# app: create or start
@@ -181,6 +229,57 @@ redeploy-app:
 	@docker run $(DOCKER_HOST_GATEWAY) -d --name "$(APP_CONTAINER)" --network "$(DOCKER_NETWORK)" -p "$(APP_SERVER_PORT):8080" -p "9090:9090" \
 		--env-file .env "$(APP_IMAGE)"
 
+# SQLite mode: mount ./db into the app container and write the DB there
+up-sqlite:
+	@# ensure network and local sqlite directory
+	@docker network inspect "$(DOCKER_NETWORK)" >/dev/null 2>&1 || docker network create "$(DOCKER_NETWORK)"
+	@mkdir -p "$(SQLITE_HOST_DIR_ABS)"
+
+	@# app: create or start (sqlite)
+	@if ! docker ps -a --format '{{.Names}}' | grep -qx "$(APP_CONTAINER)"; then \
+		docker run $(DOCKER_HOST_GATEWAY) -d --name "$(APP_CONTAINER)" --network "$(DOCKER_NETWORK)" -p "$(APP_SERVER_PORT):8080" -p "9090:9090" \
+			--env-file .env -e DB_VENDOR=sqlite -e SQLITE_DB_PATH="$(SQLITE_CONTAINER_DB_PATH)" \
+			-v "$(SQLITE_HOST_DIR_ABS):$(SQLITE_CONTAINER_DIR)" \
+			"$(APP_IMAGE)"; \
+	else \
+		if ! docker ps --format '{{.Names}}' | grep -qx "$(APP_CONTAINER)"; then docker start "$(APP_CONTAINER)"; fi; \
+	fi
+
+	@# web: create or start
+	@if ! docker ps -a --format '{{.Names}}' | grep -qx "$(WEB_CONTAINER)"; then \
+		docker run -d --name "$(WEB_CONTAINER)" --network "$(DOCKER_NETWORK)" -p "$(WEB_HOST_PORT):80" --env-file .env \
+			"$(WEB_IMAGE)"; \
+	else \
+		if ! docker ps --format '{{.Names}}' | grep -qx "$(WEB_CONTAINER)"; then docker start "$(WEB_CONTAINER)"; fi; \
+	fi
+
+up-core-sqlite:
+	@# ensure network and local sqlite directory
+	@docker network inspect "$(DOCKER_NETWORK)" >/dev/null 2>&1 || docker network create "$(DOCKER_NETWORK)"
+	@mkdir -p "$(SQLITE_HOST_DIR_ABS)"
+
+	@# app: create or start (sqlite)
+	@if ! docker ps -a --format '{{.Names}}' | grep -qx "$(APP_CONTAINER)"; then \
+		docker run $(DOCKER_HOST_GATEWAY) -d --name "$(APP_CONTAINER)" --network "$(DOCKER_NETWORK)" -p "$(APP_SERVER_PORT):8080" -p "9090:9090" \
+			--env-file .env -e DB_VENDOR=sqlite -e SQLITE_DB_PATH="$(SQLITE_CONTAINER_DB_PATH)" \
+			-v "$(SQLITE_HOST_DIR_ABS):$(SQLITE_CONTAINER_DIR)" \
+			"$(APP_IMAGE)"; \
+	else \
+		if ! docker ps --format '{{.Names}}' | grep -qx "$(APP_CONTAINER)"; then docker start "$(APP_CONTAINER)"; fi; \
+	fi
+
+	@echo "Core sqlite stack is up."
+	@echo "UI + API: http://localhost:$(APP_SERVER_PORT)"
+	@echo "API base: http://localhost:$(APP_SERVER_PORT)/api"
+
+redeploy-app-sqlite:
+	@if docker ps -a --format '{{.Names}}' | grep -qx "$(APP_CONTAINER)"; then docker rm -f "$(APP_CONTAINER)"; fi
+	@mkdir -p "$(SQLITE_HOST_DIR_ABS)"
+	@docker run $(DOCKER_HOST_GATEWAY) -d --name "$(APP_CONTAINER)" --network "$(DOCKER_NETWORK)" -p "$(APP_SERVER_PORT):8080" -p "9090:9090" \
+		--env-file .env -e DB_VENDOR=sqlite -e SQLITE_DB_PATH="$(SQLITE_CONTAINER_DB_PATH)" \
+		-v "$(SQLITE_HOST_DIR_ABS):$(SQLITE_CONTAINER_DIR)" \
+		"$(APP_IMAGE)"
+
 build-deploy:
 	@$(MAKE) build
 	@$(MAKE) up
@@ -190,6 +289,112 @@ build-deploy-nocache:
 	@$(MAKE) build-nocache
 	@$(MAKE) up
 	@$(MAKE) redeploy-app
+
+build-deploy-sqlite:
+	@$(MAKE) build
+	@$(MAKE) up-sqlite
+	@$(MAKE) redeploy-app-sqlite
+
+build-deploy-sqlite-nocache:
+	@$(MAKE) build-nocache
+	@$(MAKE) up-sqlite
+	@$(MAKE) redeploy-app-sqlite
+
+#######################################################################
+# Portable DB Export/Import (Postgres <-> SQLite)
+#######################################################################
+
+# Export from Postgres (db container) to a portable ZIP at ./db/portable-dump.zip
+portable-export-postgres:
+	@docker network inspect "$(DOCKER_NETWORK)" >/dev/null 2>&1 || docker network create "$(DOCKER_NETWORK)"
+	@docker volume inspect "$(DB_VOLUME)" >/dev/null 2>&1 || docker volume create "$(DB_VOLUME)" >/dev/null
+	@mkdir -p "$(PORTABLE_DUMP_HOST_DIR_ABS)"
+	@# Ensure Postgres is running
+	@if ! docker ps -a --format '{{.Names}}' | grep -qx "$(DB_CONTAINER)"; then \
+		docker run -d --name "$(DB_CONTAINER)" --network "$(DOCKER_NETWORK)" -p "5433:5432" \
+			--env-file .env -v "$(DB_VOLUME):/var/lib/postgresql/data" \
+			postgres:17 postgres -c max_locks_per_transaction=1024 -c shared_buffers=1GB -c shared_preload_libraries=pg_stat_statements -c pg_stat_statements.track=all -c max_connections=200 -c listen_addresses='*'; \
+	else \
+		if ! docker ps --format '{{.Names}}' | grep -qx "$(DB_CONTAINER)"; then docker start "$(DB_CONTAINER)"; fi; \
+	fi
+	@docker run --rm --network "$(DOCKER_NETWORK)" --env-file .env \
+		-v "$(PORTABLE_DUMP_HOST_DIR_ABS):$(PORTABLE_DUMP_CONTAINER_DIR)" \
+		"$(APP_IMAGE)" \
+		java -jar /usr/local/tomcat/ROOT-exec.war \
+			--server.port=0 --management.server.port=0 \
+			--aiforgot.portableDump.command=export \
+			--aiforgot.portableDump.file="$(PORTABLE_DUMP_CONTAINER_PATH)"
+	@echo "Wrote $(PORTABLE_DUMP_HOST_PATH)"
+
+# Export from SQLite (./db/cards.db) to a portable ZIP at ./db/portable-dump.zip
+portable-export-sqlite:
+	@docker network inspect "$(DOCKER_NETWORK)" >/dev/null 2>&1 || docker network create "$(DOCKER_NETWORK)"
+	@mkdir -p "$(SQLITE_HOST_DIR_ABS)"
+	@docker run --rm --network "$(DOCKER_NETWORK)" --env-file .env \
+		-e DB_VENDOR=sqlite -e SQLITE_DB_PATH="$(SQLITE_CONTAINER_DB_PATH)" \
+		-v "$(SQLITE_HOST_DIR_ABS):$(SQLITE_CONTAINER_DIR)" \
+		"$(APP_IMAGE)" \
+		java -jar /usr/local/tomcat/ROOT-exec.war \
+			--server.port=0 --management.server.port=0 \
+			--aiforgot.portableDump.command=export \
+			--aiforgot.portableDump.file="$(PORTABLE_DUMP_CONTAINER_PATH)"
+	@echo "Wrote $(PORTABLE_DUMP_HOST_PATH)"
+
+# Import portable ZIP into Postgres (mode: truncate or fail-if-not-empty)
+portable-import-postgres:
+	@docker network inspect "$(DOCKER_NETWORK)" >/dev/null 2>&1 || docker network create "$(DOCKER_NETWORK)"
+	@docker volume inspect "$(DB_VOLUME)" >/dev/null 2>&1 || docker volume create "$(DB_VOLUME)" >/dev/null
+	@mkdir -p "$(PORTABLE_DUMP_HOST_DIR_ABS)"
+	@# Ensure Postgres is running
+	@if ! docker ps -a --format '{{.Names}}' | grep -qx "$(DB_CONTAINER)"; then \
+		docker run -d --name "$(DB_CONTAINER)" --network "$(DOCKER_NETWORK)" -p "5433:5432" \
+			--env-file .env -v "$(DB_VOLUME):/var/lib/postgresql/data" \
+			postgres:17 postgres -c max_locks_per_transaction=1024 -c shared_buffers=1GB -c shared_preload_libraries=pg_stat_statements -c pg_stat_statements.track=all -c max_connections=200 -c listen_addresses='*'; \
+	else \
+		if ! docker ps --format '{{.Names}}' | grep -qx "$(DB_CONTAINER)"; then docker start "$(DB_CONTAINER)"; fi; \
+	fi
+	@docker run --rm --network "$(DOCKER_NETWORK)" --env-file .env \
+		-v "$(PORTABLE_DUMP_HOST_DIR_ABS):$(PORTABLE_DUMP_CONTAINER_DIR)" \
+		"$(APP_IMAGE)" \
+		java -jar /usr/local/tomcat/ROOT-exec.war \
+			--server.port=0 --management.server.port=0 \
+			--aiforgot.portableDump.command=import \
+			--aiforgot.portableDump.mode="$(PORTABLE_IMPORT_MODE)" \
+			--aiforgot.portableDump.file="$(PORTABLE_DUMP_CONTAINER_PATH)"
+
+# Import portable ZIP into SQLite (mode: truncate or fail-if-not-empty)
+portable-import-sqlite:
+	@docker network inspect "$(DOCKER_NETWORK)" >/dev/null 2>&1 || docker network create "$(DOCKER_NETWORK)"
+	@mkdir -p "$(SQLITE_HOST_DIR_ABS)"
+	@docker run --rm --network "$(DOCKER_NETWORK)" --env-file .env \
+		-e DB_VENDOR=sqlite -e SQLITE_DB_PATH="$(SQLITE_CONTAINER_DB_PATH)" \
+		-v "$(SQLITE_HOST_DIR_ABS):$(SQLITE_CONTAINER_DIR)" \
+		"$(APP_IMAGE)" \
+		java -jar /usr/local/tomcat/ROOT-exec.war \
+			--server.port=0 --management.server.port=0 \
+			--aiforgot.portableDump.command=import \
+			--aiforgot.portableDump.mode="$(PORTABLE_IMPORT_MODE)" \
+			--aiforgot.portableDump.file="$(PORTABLE_DUMP_CONTAINER_PATH)"
+
+validate-portable:
+	@docker network inspect "$(DOCKER_NETWORK)" >/dev/null 2>&1 || docker network create "$(DOCKER_NETWORK)"
+	@mkdir -p "$(PORTABLE_DUMP_HOST_DIR_ABS)"
+	@docker run --rm --network "$(DOCKER_NETWORK)" --env-file .env \
+		-v "$(PORTABLE_DUMP_HOST_DIR_ABS):$(PORTABLE_DUMP_CONTAINER_DIR)" \
+		"$(APP_IMAGE)" \
+		java -jar /usr/local/tomcat/ROOT-exec.war \
+			--server.port=0 --management.server.port=0 \
+			--aiforgot.portableDump.command=validate \
+			--aiforgot.portableDump.file="$(PORTABLE_DUMP_CONTAINER_PATH)"
+
+# Wrapper targets must run sequentially (some environments set MAKEFLAGS=-j)
+migrate-postgres-to-sqlite:
+	@$(MAKE) portable-export-postgres
+	@$(MAKE) portable-import-sqlite
+
+migrate-sqlite-to-postgres:
+	@$(MAKE) portable-export-sqlite
+	@$(MAKE) portable-import-postgres
 
 delete-redeploy: down-with-volumes build up
 
@@ -250,6 +455,7 @@ help:
 	@echo "  export-db-container           - Export the PostgreSQL database from the DB container to db/backup.sql."
 	@echo "  import-db                     - Import the PostgreSQL database from db/backup.sql."
 	@echo "  import-db-container           - Import the PostgreSQL database from db/backup.sql into the DB container."
+	@echo "  list-backups                  - List archived backups under db/ (backup.sql, backup1.sql, ...)."
 	@echo "  build-app-image               - Build the application Docker image."
 	@echo "  build-app-image-nocache       - Build the application Docker image (no cache)."
 	@echo "  build-web-image               - Build the web Docker image."
@@ -258,7 +464,9 @@ help:
 	@echo "  build-nocache                 - Build both images (no cache)."
 	@echo "  test                          - Run unit tests."
 	@echo "  up                            - Start the application, database, and web containers."
+	@echo "  up-sqlite                     - Start app+web with SQLite single-file DB (mounts ./db into app container)."
 	@echo "  up-core                       - Start only the application + database containers (no Nginx)."
+	@echo "  up-core-sqlite                - Start only the app with SQLite single-file DB (mounts ./db)."
 	@echo "  build-core-nocache            - Build the application Docker image (no cache) (core stack)."
 	@echo "  down                          - Stop and remove the application, database, and web containers."
 	@echo "  down-core                     - Stop and remove only the application + database containers."
@@ -268,6 +476,15 @@ help:
 	@echo "  build-deploy                  - Build images and deploy the application container."
 	@echo "  build-deploy-core             - Build the app image and deploy the core stack (app + db only)."
 	@echo "  build-deploy-core-nocache     - Build the app image (no cache) and deploy the core stack (app + db only)."
+	@echo "  build-deploy-sqlite           - Build images and deploy using SQLite single-file mode (mounts ./db)."
+	@echo "  build-deploy-sqlite-nocache   - Build images (no cache) and deploy using SQLite single-file mode (mounts ./db)."
+	@echo "  portable-export-postgres      - Export Postgres DB to ./db/portable-dump.zip."
+	@echo "  portable-export-sqlite        - Export SQLite DB (./db/cards.db) to ./db/portable-dump.zip."
+	@echo "  portable-import-postgres      - Import ./db/portable-dump.zip into Postgres (PORTABLE_IMPORT_MODE=truncate|fail-if-not-empty)."
+	@echo "  portable-import-sqlite        - Import ./db/portable-dump.zip into SQLite (./db/cards.db) (PORTABLE_IMPORT_MODE=truncate|fail-if-not-empty)."
+	@echo "  validate-portable             - Validate ./db/portable-dump.zip structure."
+	@echo "  migrate-postgres-to-sqlite    - Export Postgres -> import into SQLite."
+	@echo "  migrate-sqlite-to-postgres    - Export SQLite -> import into Postgres."
 	@echo "  build-deploy-nocache          - Build images (no cache) and deploy the application container."
 	@echo "  delete-redeploy               - Delete containers and volumes, then rebuild and redeploy."
 	@echo "  export-delete-redeploy        - Export DB, delete containers/volumes, redeploy, and import DB."
@@ -318,15 +535,19 @@ build-core-nocache: build-app-image-nocache
 up-core:
 	@# ensure network and volume
 	@docker network inspect "$(DOCKER_NETWORK)" >/dev/null 2>&1 || docker network create "$(DOCKER_NETWORK)"
-	@docker volume inspect "$(DB_VOLUME)" >/dev/null 2>&1 || docker volume create "$(DB_VOLUME)" >/dev/null
+	@if [ "$(DB_VENDOR)" != "sqlite" ]; then \
+		docker volume inspect "$(DB_VOLUME)" >/dev/null 2>&1 || docker volume create "$(DB_VOLUME)" >/dev/null; \
+	fi
 
-	@# db: create or start
-	@if ! docker ps -a --format '{{.Names}}' | grep -qx "$(DB_CONTAINER)"; then \
-		docker run -d --name "$(DB_CONTAINER)" --network "$(DOCKER_NETWORK)" -p "5433:5432" \
-			--env-file .env -v "$(DB_VOLUME):/var/lib/postgresql/data" \
-			postgres:17 postgres -c max_locks_per_transaction=1024 -c shared_buffers=1GB -c shared_preload_libraries=pg_stat_statements -c pg_stat_statements.track=all -c max_connections=200 -c listen_addresses='*'; \
-	else \
-		if ! docker ps --format '{{.Names}}' | grep -qx "$(DB_CONTAINER)"; then docker start "$(DB_CONTAINER)"; fi; \
+	@# db (postgres): create or start (skipped when DB_VENDOR=sqlite)
+	@if [ "$(DB_VENDOR)" != "sqlite" ]; then \
+		if ! docker ps -a --format '{{.Names}}' | grep -qx "$(DB_CONTAINER)"; then \
+			docker run -d --name "$(DB_CONTAINER)" --network "$(DOCKER_NETWORK)" -p "5433:5432" \
+				--env-file .env -v "$(DB_VOLUME):/var/lib/postgresql/data" \
+				postgres:17 postgres -c max_locks_per_transaction=1024 -c shared_buffers=1GB -c shared_preload_libraries=pg_stat_statements -c pg_stat_statements.track=all -c max_connections=200 -c listen_addresses='*'; \
+		else \
+			if ! docker ps --format '{{.Names}}' | grep -qx "$(DB_CONTAINER)"; then docker start "$(DB_CONTAINER)"; fi; \
+		fi; \
 	fi
 
 	@# app: create or start

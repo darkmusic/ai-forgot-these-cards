@@ -56,12 +56,20 @@ RUN set -eux; \
 	war="$(ls -1 target/*.war | grep -v -- '-exec\.war$' | head -n 1)"; \
 	cp "$war" target/ROOT.war
 
+# Also keep a runnable Spring Boot WAR (attached by spring-boot-maven-plugin with classifier 'exec')
+RUN set -eux; \
+	exec_war="$(ls -1 target/*-exec.war | head -n 1)"; \
+	cp "$exec_war" target/ROOT-exec.war
+
 # Runtime image: Tomcat + the built WAR
 FROM tomcat:11.0.12-jdk21-temurin
 
 RUN rm -rf /usr/local/tomcat/webapps/*
 
 COPY --from=build /workspace/target/ROOT.war /usr/local/tomcat/webapps/ROOT.war
+
+# Used for one-off CLI tasks (portable DB export/import) without touching Tomcat.
+COPY --from=build /workspace/target/ROOT-exec.war /usr/local/tomcat/ROOT-exec.war
 
 ENV JAVA_OPTS="-Xms512m -Xmx1024m -Djava.security.egd=file:/dev/./urandom"
 EXPOSE 8080

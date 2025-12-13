@@ -57,7 +57,7 @@ public class UserDAOImpl implements UserDAO {
 
     @Override
     public boolean existsById(Long aLong) {
-        return findById(aLong) != null;
+        return findById(aLong).isPresent();
     }
 
     @Override
@@ -72,7 +72,7 @@ public class UserDAOImpl implements UserDAO {
 
     @Override
     public long count() {
-        return em.createQuery("select count(*) from User", Integer.class).getSingleResult();
+        return em.createQuery("select count(*) from User", Long.class).getSingleResult();
     }
 
     @Override

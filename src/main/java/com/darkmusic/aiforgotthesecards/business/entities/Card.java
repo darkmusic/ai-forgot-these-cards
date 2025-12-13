@@ -1,10 +1,11 @@
 package com.darkmusic.aiforgotthesecards.business.entities;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import java.util.Set;
 
 @Setter
@@ -17,10 +18,12 @@ public class Card {
     @Column(name="id", nullable = false)
     private Long id;
 
-    @Column(name="front", columnDefinition = "text")
+    @JdbcTypeCode(SqlTypes.LONGVARCHAR)
+    @Column(name="front")
     private String front;
 
-    @Column(name="back", columnDefinition = "text")
+    @JdbcTypeCode(SqlTypes.LONGVARCHAR)
+    @Column(name="back")
     private String back;
 
     @JoinColumn(name = "deck_id", nullable = false)

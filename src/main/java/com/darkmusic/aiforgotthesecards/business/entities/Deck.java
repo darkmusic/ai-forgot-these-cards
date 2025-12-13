@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.util.Set;
 
@@ -41,9 +43,11 @@ public class Deck {
     )
     private Set<Tag> tags;
 
-    @Column(name="template_front", columnDefinition = "text")
+    @JdbcTypeCode(SqlTypes.LONGVARCHAR)
+    @Column(name="template_front")
     private String templateFront;
 
-    @Column(name="template_back", columnDefinition = "text")
+    @JdbcTypeCode(SqlTypes.LONGVARCHAR)
+    @Column(name="template_back")
     private String templateBack;
 }
