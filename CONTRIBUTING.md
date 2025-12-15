@@ -19,7 +19,7 @@ This repo publishes release artifacts via GitHub Actions:
 1.  Make sure `main` is up to date and green
     -  `git checkout main`
     -  `git pull`
-    -  Recommended: `./mvnw test`
+    -  Recommended: `./mvnw clean test`
 2.  Create and push the tag
     -  `git tag v1.2.3`
     -  `git push origin v1.2.3`
