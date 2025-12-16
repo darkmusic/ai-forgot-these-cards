@@ -47,4 +47,4 @@ src/test/nim/tests/smoke/nginx
 src/test/nim/tests/smoke/nginx.exe
 src/test/nim/tests/smoke/smoke_api
 src/test/nim/tests/smoke/smoke_api.exe
-transfer
+*.zip

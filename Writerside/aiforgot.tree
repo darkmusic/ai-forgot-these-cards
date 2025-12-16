@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE instance-profile
+        SYSTEM "https://resources.jetbrains.com/writerside/1.0/product-profile.dtd">
+
+<instance-profile id="aiforgot"
+                 name="ai-forgot-these-cards"
+                 start-page="Overview.md">
+
+    <toc-element topic="Overview.md"/>
+    <toc-element topic="Screenshots.md"/>
+
+    <toc-element topic="Getting-started.md">
+        <toc-element topic="Quickstart.md"/>
+        <toc-element topic="Installation-guide.md"/>
+        <toc-element topic="Configuration.md"/>
+    </toc-element>
+
+    <toc-element topic="Guides.md">
+        <toc-element topic="Architecture.md"/>
+        <toc-element topic="Study-modes.md"/>
+        <toc-element topic="Deployment.md"/>
+        <toc-element topic="Database.md"/>
+        <toc-element topic="AI-Integration.md"/>
+        <toc-element topic="Security-and-auth.md"/>
+        <toc-element topic="Operations-and-monitoring.md"/>
+        <toc-element topic="Development.md"/>
+        <toc-element topic="Standalone.md"/>
+        <toc-element topic="Build-caching.md"/>
+        <toc-element topic="Troubleshooting.md"/>
+    </toc-element>
+
+    <toc-element topic="Roadmap.md"/>
+</instance-profile>

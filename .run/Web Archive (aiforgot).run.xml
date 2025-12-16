@@ -1,0 +1,9 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Web Archive (aiforgot)" type="StardustRunConfiguration" factoryName="save-as-zip">
+    <option name="folderPath" value="$PROJECT_DIR$" />
+    <option name="instanceId" value="aiforgot" />
+    <option name="instanceName" value="ai-forgot-these-cards" />
+    <option name="moduleName" value="Writerside" />
+    <method v="2" />
+  </configuration>
+</component>
