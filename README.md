@@ -9,13 +9,7 @@ AI-assisted flashcards: create decks/cards, study via SRS Review or Cram mode, a
 
 ![Screenshot](res/screenshots/cram_session.png)
 
-## Documentation
-
-The full documentation (installation, configuration, deployment, database export/import, AI setup, screenshots, etc.) is here:
-
-https://darkmusic.github.io/ai-forgot-these-cards/overview.html
-
-## Install
+## Installation
 
 Two supported installation paths:
 
@@ -31,6 +25,7 @@ Two supported installation paths:
 
 ## Quick links
 
+- Documentation: https://darkmusic.github.io/ai-forgot-these-cards/overview.html
+- Frontend repo: https://github.com/darkmusic/ai-forgot-this-frontend
 - Contributing / releases: [CONTRIBUTING.md](CONTRIBUTING.md)
 - License: [LICENSE.txt](LICENSE.txt)
-- Frontend repo: https://github.com/darkmusic/ai-forgot-this-frontend
