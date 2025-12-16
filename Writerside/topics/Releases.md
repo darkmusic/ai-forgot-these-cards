@@ -90,7 +90,7 @@ SPRING_AI_OPENAI_CHAT_BASE_URL=http://localhost:8087 java -jar ai-forgot-these-c
 
 ## Option B: Deploy the standard WAR (`*.war`) to Tomcat
 
-### Requirements
+### WAR deployment requirements
 
 - An external Tomcat 10+ (Jakarta / Servlet 6)
 - Java 17+
