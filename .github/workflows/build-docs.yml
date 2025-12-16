@@ -5,6 +5,16 @@ on:
     branches: ["main"]
   workflow_dispatch:
 
+# Required for GitHub Pages deployment via Actions
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
 env:
   INSTANCE: 'Writerside/aiforgot'
   #DOCKER_VERSION: 'XXX.YYYYY'
@@ -57,6 +67,7 @@ jobs:
             artifacts/report.json
             artifacts/${{ steps.define-ids.outputs.algolia_artifact }}
           retention-days: 7
+
   test:
     needs: build
     runs-on: ubuntu-latest
@@ -71,3 +82,59 @@ jobs:
         uses: JetBrains/writerside-checker-action@v1
         with:
           instance: ${{ env.INSTANCE }}
+
+  pages_build:
+    needs: [build, test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download docs artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: docs
+          path: artifacts
+
+      - name: Unzip site for Pages
+        run: |
+          set -euxo pipefail
+
+          mkdir -p site
+          ZIP_PATH="artifacts/${{ needs.build.outputs.artifact }}"
+
+          if [ ! -f "$ZIP_PATH" ]; then
+            echo "Expected Writerside ZIP not found at: $ZIP_PATH"
+            ls -la artifacts || true
+            exit 1
+          fi
+
+          unzip -q "$ZIP_PATH" -d site
+
+          # If the ZIP unpacks into a single top-level directory, flatten it
+          top="$(find site -mindepth 1 -maxdepth 1 -type d | head -n 1 || true)"
+          if [ -n "$top" ] && [ "$(find site -mindepth 1 -maxdepth 1 | wc -l)" -eq 1 ]; then
+            tmpdir="$(mktemp -d)"
+            mv "$top"/* "$tmpdir"/
+            rm -rf site
+            mv "$tmpdir" site
+          fi
+
+          # Prevent Pages/Jekyll from messing with underscores, etc.
+          touch site/.nojekyll
+
+          # Basic sanity check
+          test -f site/index.html
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  pages_deploy:
+    needs: pages_build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
