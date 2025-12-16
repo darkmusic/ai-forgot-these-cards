@@ -7,7 +7,7 @@
 
 AI-assisted flashcards: create decks/cards, study via SRS Review or Cram mode, and (optionally) chat with an LLM while authoring cards.
 
-![Screenshot](res/screenshots/cram_session.png)
+![Screenshot](res/screenshots/review_back.png)
 
 ## Installation
 
