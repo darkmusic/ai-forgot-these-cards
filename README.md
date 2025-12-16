@@ -15,6 +15,20 @@ The full documentation (installation, configuration, deployment, database export
 
 https://darkmusic.github.io/ai-forgot-these-cards/overview.html
 
+## Install
+
+Two supported installation paths:
+
+1) **GitHub Releases (WAR artifacts)**
+	- Download: https://github.com/darkmusic/ai-forgot-these-cards/releases
+	- Install guide: https://darkmusic.github.io/ai-forgot-these-cards/releases.html
+
+2) **Prebuilt container images (GHCR)**
+	- Images:
+	  - `ghcr.io/darkmusic/ai-forgot-these-cards-app`
+	  - `ghcr.io/darkmusic/ai-forgot-these-cards-web`
+	- Install guide: https://darkmusic.github.io/ai-forgot-these-cards/container-images.html
+
 ## Quick links
 
 - Contributing / releases: [CONTRIBUTING.md](CONTRIBUTING.md)

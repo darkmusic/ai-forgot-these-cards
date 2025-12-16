@@ -15,6 +15,13 @@ The default workflow is **containerized**: building the backend WAR and the fron
 
 > **Note:** Your `.env` can change ports and database vendor; see [Configuration.md](Configuration.md).
 
+## Installing from a release (no build)
+
+If you don’t want to clone/build the repo, use one of these options:
+
+- GitHub Releases (WAR artifacts): [Releases.md](Releases.md)
+- Prebuilt container images (GHCR): [Container-images.md](Container-images.md)
+
 ## System requirements
 
 Minimum requirements:

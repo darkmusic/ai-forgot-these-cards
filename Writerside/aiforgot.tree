@@ -12,6 +12,7 @@
     <toc-element topic="Getting-started.md">
         <toc-element topic="Quickstart.md"/>
         <toc-element topic="Installation-guide.md"/>
+        <toc-element topic="Releases.md"/>
         <toc-element topic="Configuration.md"/>
     </toc-element>
 
@@ -19,6 +20,7 @@
         <toc-element topic="Architecture.md"/>
         <toc-element topic="Study-modes.md"/>
         <toc-element topic="Deployment.md"/>
+        <toc-element topic="Container-images.md"/>
         <toc-element topic="Database.md"/>
         <toc-element topic="AI-Integration.md"/>
         <toc-element topic="Security-and-auth.md"/>

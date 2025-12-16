@@ -2,6 +2,8 @@
 
 This project supports multiple local deployment topologies, driven by Make targets.
 
+If you want to deploy using **prebuilt GHCR images** (instead of building locally), see [Container-images.md](Container-images.md).
+
 ## Core stack vs full stack
 
 ### Core stack (app + DB)

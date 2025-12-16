@@ -41,5 +41,7 @@ AI features are optional. When enabled, questions you send to the AI are sent to
 
 - Quick, minimal path: [Quickstart.md](Quickstart.md)
 - Full setup and options: [Installation-guide.md](Installation-guide.md)
+- Install from GitHub Releases (WAR): [Releases.md](Releases.md)
+- Run prebuilt GHCR images (Docker): [Container-images.md](Container-images.md)
 - Environment variables and `.env`: [Configuration.md](Configuration.md)
 - See the UI: [Screenshots.md](Screenshots.md)
