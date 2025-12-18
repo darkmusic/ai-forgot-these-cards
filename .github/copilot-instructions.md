@@ -85,7 +85,7 @@ Notes on container naming:
 ### Database operations (requires password prompt)
 - **Export**: `make export-db` – dumps database to `db/backup.sql`.
 - **Import**: `make import-db` – drops/recreates database and restores from `db/backup.sql`.
-- **Drop and recreate**: `make drop-and-recreate-db` – removes container and volume, recreates fresh database.
+- **Drop and recreate**: `make drop-and-recreate-db` – removes container and volume, recreates fresh database. Prompt user first before proceeding with this.
 
 ### Maven dependency caching (optional Nexus)
 - **Start Nexus**: `make nexus-up` – starts Sonatype Nexus 3 on port 8081 with persistent volume.
