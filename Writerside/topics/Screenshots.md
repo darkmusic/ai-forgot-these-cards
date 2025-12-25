@@ -40,6 +40,10 @@ This page shows some key screens from **Ai Forgot These Cards**.
 
 ![Bulk entry/updating](../images/bulk_entry.png)
 
+## Markdown table support
+
+![Markdown table support](../images/markdown_tables.png)
+
 ## Review (front)
 
 ![SRS review front](../images/review_front.png)
