@@ -24,7 +24,7 @@ If you’re just trying things out, you can often leave most defaults as-is.
 make build-deploy-core
 ```
 
-Open: http://localhost:8080
+Open: <http://localhost:8080>
 
 ## 4) Sign in
 

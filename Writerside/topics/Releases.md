@@ -2,8 +2,8 @@
 
 This project publishes **release artifacts** on GitHub Releases.
 
-- Releases page: https://github.com/darkmusic/ai-forgot-these-cards/releases
-- Example release: https://github.com/darkmusic/ai-forgot-these-cards/releases/tag/v0.1.2
+- Releases page: <https://github.com/darkmusic/ai-forgot-these-cards/releases>
+- Example release: <https://github.com/darkmusic/ai-forgot-these-cards/releases/tag/v0.1.2>
 
 A typical release includes:
 

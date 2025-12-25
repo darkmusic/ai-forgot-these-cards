@@ -39,6 +39,7 @@ The deck list includes SRS counts per deck:
 ## Making efficient use of tags
 
 Tags are a powerful way to organize and filter your cards during study sessions, so make use of them! Here are some tips for using tags effectively:
+
 - Use descriptive tags that reflect the content or context of the card (e.g., "grammar", "vocabulary", "history").
 - Combine multiple tags to create focused study sessions (e.g., "biology" AND "photosynthesis").
 - Regularly review and update your tags to ensure they remain relevant and useful for your study goals.

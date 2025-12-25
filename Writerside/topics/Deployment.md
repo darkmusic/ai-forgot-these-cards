@@ -10,7 +10,7 @@ If you want to deploy using **prebuilt GHCR images** (instead of building locall
 
 - Runs: Postgres container + app container
 - UI and API are served by the app container
-- Default URL: http://localhost:8080
+- Default URL: <http://localhost:8080>
 
 Commands:
 
@@ -24,7 +24,7 @@ make up-core
 
 - Runs: Nginx container + app container + Postgres container
 - Nginx serves the SPA and proxies `/api/*` to the app
-- Default URL: http://localhost:8086
+- Default URL: <http://localhost:8086>
 
 Commands:
 

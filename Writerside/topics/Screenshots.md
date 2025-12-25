@@ -2,7 +2,7 @@
 
 This page shows some key screens from **Ai Forgot These Cards**.
 
-> Tip: If you run the full stack (`make build-deploy`), open http://localhost:8086. For the core stack (`make build-deploy-core`), open http://localhost:8080.
+> Tip: If you run the full stack (`make build-deploy`), open <http://localhost:8086>. For the core stack (`make build-deploy-core`), open <http://localhost:8080>.
 
 ## Login
 

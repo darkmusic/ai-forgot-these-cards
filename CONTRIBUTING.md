@@ -16,17 +16,17 @@ This repo publishes release artifacts via GitHub Actions:
 
 ### Release steps
 
-1.  Make sure `main` is up to date and green
-    -  `git checkout main`
-    -  `git pull`
-    -  Recommended: `./mvnw clean test`
-2.  Create and push the tag
-    -  `git tag v1.2.3`
-    -  `git push origin v1.2.3`
-3.  Create the GitHub Release
-    -  GitHub UI: **Releases → Draft a new release**
-    -  Select the existing tag `v1.2.3`
-    -  Publish the release (or create it as a draft)
+1. Make sure `main` is up to date and green
+    - `git checkout main`
+    - `git pull`
+    - Recommended: `./mvnw clean test`
+2. Create and push the tag
+    - `git tag v1.2.3`
+    - `git push origin v1.2.3`
+3. Create the GitHub Release
+    - GitHub UI: **Releases → Draft a new release**
+    - Select the existing tag `v1.2.3`
+    - Publish the release (or create it as a draft)
 
 Creating the release triggers the WAR workflow.
 

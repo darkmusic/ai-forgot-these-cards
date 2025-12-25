@@ -5,7 +5,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configurers.DefaultLoginPageConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -34,7 +33,7 @@ public class AiForgotTheseCardsApplication {
                                                    CustomUserDetailsService userDetailsService,
                                                    PasswordEncoder passwordEncoder
     ) throws Exception {
-        HttpSecurity httpSecurity = http
+        http
                 .authorizeHttpRequests(requests -> requests
                         // Permit SPA assets and root
                         .requestMatchers("/", "/index.html", "/assets/**", "/favicon*", "/vite*").permitAll()
@@ -78,11 +77,6 @@ public class AiForgotTheseCardsApplication {
                         .addLogoutHandler(
                             new CookieClearingLogoutHandler("JSESSIONID", "XSRF-TOKEN"))
                         .logoutSuccessHandler((req,res,auth) -> res.setStatus(HttpServletResponse.SC_NO_CONTENT)));
-
-        DefaultLoginPageConfigurer<HttpSecurity> defaultLoginPage = httpSecurity.getConfigurer(DefaultLoginPageConfigurer.class);
-        if (defaultLoginPage != null) {
-            defaultLoginPage.disable();
-        }
 
         return http.build();
     }

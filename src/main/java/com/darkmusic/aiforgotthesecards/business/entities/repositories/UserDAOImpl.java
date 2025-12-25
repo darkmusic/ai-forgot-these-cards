@@ -3,7 +3,6 @@ package com.darkmusic.aiforgotthesecards.business.entities.repositories;
 import com.darkmusic.aiforgotthesecards.business.entities.User;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
-import org.springframework.beans.factory.annotation.Autowired;
 import java.util.List;
 import java.util.Optional;
 

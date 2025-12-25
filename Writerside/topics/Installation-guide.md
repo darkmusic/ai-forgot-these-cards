@@ -8,10 +8,10 @@ The default workflow is **containerized**: building the backend WAR and the fron
 
 | Type | Best for | Command | Default URL |
 | --- | --- | --- | --- |
-| **Core stack** (app + DB) | Most users / simplest | `make build-deploy-core` | http://localhost:8080 |
-| **Full stack** (Nginx + app + DB) | Reverse-proxy parity | `make build-deploy` | http://localhost:8086 |
-| **SQLite mode** (no Postgres) | Simplest runtime | `make build-deploy-sqlite` *(full)* or `make up-core-sqlite` *(core)* | http://localhost:8086 or :8080 |
-| **Standalone (no containers)** | Advanced | `make run-standalone-sqlite` | http://localhost:8080 |
+| **Core stack** (app + DB) | Most users / simplest | `make build-deploy-core` | <http://localhost:8080> |
+| **Full stack** (Nginx + app + DB) | Reverse-proxy parity | `make build-deploy` | <http://localhost:8086> |
+| **SQLite mode** (no Postgres) | Simplest runtime | `make build-deploy-sqlite` *(full)* or `make up-core-sqlite` *(core)* | <http://localhost:8086> or :8080 |
+| **Standalone (no containers)** | Advanced | `make run-standalone-sqlite` | <http://localhost:8080> |
 
 > **Note:** Your `.env` can change ports and database vendor; see [Configuration.md](Configuration.md).
 
@@ -43,13 +43,13 @@ git clone https://github.com/darkmusic/ai-forgot-these-cards
 cd ai-forgot-these-cards
 ```
 
-2) Initialize submodules (frontend and llama.cpp are included as submodules):
+1) Initialize submodules (frontend and llama.cpp are included as submodules):
 
 ```bash
 git submodule update --init
 ```
 
-3) Create a `.env` file:
+1) Create a `.env` file:
 
 ```bash
 cp .env.example .env
@@ -67,19 +67,19 @@ This runs the app + Postgres DB. The app serves both the UI and `/api`.
 make build-deploy-core
 ```
 
-2) Open the app:
+1) Open the app:
 
-- UI + API: http://localhost:8080
-- API base: http://localhost:8080/api
+    - UI + API: <http://localhost:8080>
+    - API base: <http://localhost:8080/api>
 
-3) Sign in with the default admin:
+1) Sign in with the default admin:
 
-- Username: `cards`
-- Password: `cards`
+    - Username: `cards`
+    - Password: `cards`
 
-4) (Recommended) Create a normal user:
+1) (Recommended) Create a normal user:
 
-- Go to **Admin** and add a new user with role `USER`.
+    - Go to **Admin** and add a new user with role `USER`.
 
 ## Verify installation
 
@@ -87,9 +87,9 @@ Use one (or more) of the following checks:
 
 - Open the UI page in your browser
 - Open Swagger UI:
-  - Core stack: http://localhost:8080/swagger-ui/index.html
-  - Full stack: http://localhost:8086/api/swagger-ui/index.html
-- Open Actuator (core stack example): http://localhost:8080/actuator
+  - Core stack: <http://localhost:8080/swagger-ui/index.html>
+  - Full stack: <http://localhost:8086/api/swagger-ui/index.html>
+- Open Actuator (core stack example): <http://localhost:8080/actuator>
 
 ## Optional: enable AI features
 

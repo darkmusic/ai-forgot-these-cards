@@ -2,8 +2,8 @@
 
 This project publishes prebuilt images to GitHub Container Registry (GHCR):
 
-- App image: https://github.com/users/darkmusic/packages/container/package/ai-forgot-these-cards-app
-- Web image (Nginx SPA + `/api` reverse proxy): https://github.com/users/darkmusic/packages/container/package/ai-forgot-these-cards-web
+- App image: <https://github.com/users/darkmusic/packages/container/package/ai-forgot-these-cards-app>
+- Web image (Nginx SPA + `/api` reverse proxy): <https://github.com/users/darkmusic/packages/container/package/ai-forgot-these-cards-web>
 
 Pull examples:
 
@@ -31,7 +31,7 @@ The examples below use Docker CLI directly. If you prefer Docker Compose, you ca
 docker network create cards-net
 ```
 
-2) Start Postgres:
+1) Start Postgres:
 
 ```bash
 docker volume create pgdata
@@ -47,7 +47,7 @@ docker run -d \
   postgres:16
 ```
 
-3) Start the app container.
+1) Start the app container.
 
 Important: name this container `app` so the web container can reach it as `http://app:8080`.
 
@@ -63,7 +63,7 @@ docker run -d \
   ghcr.io/darkmusic/ai-forgot-these-cards-app:latest
 ```
 
-4) Start the web container (Nginx).
+1) Start the web container (Nginx).
 
 ```bash
 docker run -d \
@@ -73,15 +73,15 @@ docker run -d \
   ghcr.io/darkmusic/ai-forgot-these-cards-web:latest
 ```
 
-5) Open the app:
+1) Open the app:
 
-- Full stack URL: http://localhost:8086
+- Full stack URL: <http://localhost:8086>
 
 ## Core stack (app + Postgres only)
 
 If you don’t need Nginx, you can skip the web container and use the app directly.
 
-- URL: http://localhost:8080
+- URL: <http://localhost:8080>
 
 Use the same `db` and `app` `docker run` commands above, but omit the `web` container.
 
@@ -101,7 +101,7 @@ docker run -d \
   ghcr.io/darkmusic/ai-forgot-these-cards-app:latest
 ```
 
-Then open: http://localhost:8080
+Then open: <http://localhost:8080>
 
 ## Configuration
 
