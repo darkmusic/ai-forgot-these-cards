@@ -81,8 +81,8 @@ run-standalone-sqlite:
 		mkdir -p db; \
 		war="$$(ls -1 target/*-exec.war 2>/dev/null | head -n 1 || true)"; \
 		if [ -z "$$war" ]; then \
-			echo "No executable WAR found under target/. Building with ./mvnw -DskipTests package ..."; \
-			./mvnw -DskipTests package; \
+			echo "No executable WAR found under target/. Building with ./mvnw package ..."; \
+			./mvnw package; \
 			war="$$(ls -1 target/*-exec.war 2>/dev/null | head -n 1 || true)"; \
 		fi; \
 		if [ -z "$$war" ]; then \
@@ -104,8 +104,8 @@ run-standalone-postgres:
 	@set -euo pipefail; \
 		war="$$(ls -1 target/*-exec.war 2>/dev/null | head -n 1 || true)"; \
 		if [ -z "$$war" ]; then \
-			echo "No executable WAR found under target/. Building with ./mvnw -DskipTests package ..."; \
-			./mvnw -DskipTests package; \
+			echo "No executable WAR found under target/. Building with ./mvnw package ..."; \
+			./mvnw package; \
 			war="$$(ls -1 target/*-exec.war 2>/dev/null | head -n 1 || true)"; \
 		fi; \
 		if [ -z "$$war" ]; then \

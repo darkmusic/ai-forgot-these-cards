@@ -37,6 +37,16 @@ public class TagController {
         return tagDAO.findAll();
     }
 
+    @GetMapping("/api/tag/used/decks")
+    public Iterable<Tag> getTagsUsedByDecks() {
+        return tagDAO.findTagsUsedByDecks();
+    }
+
+    @GetMapping("/api/tag/used/cards")
+    public Iterable<Tag> getTagsUsedByCards() {
+        return tagDAO.findTagsUsedByCards();
+    }
+
     @PostMapping("/api/tag")
     public Tag addTag(@RequestBody Tag tag) {
         return tagDAO.save(tag);

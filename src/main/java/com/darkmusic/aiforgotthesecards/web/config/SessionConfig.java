@@ -1,4 +1,4 @@
-package com.darkmusic.aiforgotthesecards.config;
+package com.darkmusic.aiforgotthesecards.web.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.ServletContextInitializer;

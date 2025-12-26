@@ -47,7 +47,7 @@ Tag behavior:
 
 #### WAR artifacts (attached to the GitHub Release)
 
-On `release: created`, CI runs `./mvnw -DskipTests package` and uploads:
+On `release: created`, CI runs `./mvnw package` and uploads:
 
 - `target/*.war` (includes the standard deployable WAR and the runnable `*-exec.war`)
 - `target/checksums.sha256`

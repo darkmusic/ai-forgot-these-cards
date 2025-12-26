@@ -20,6 +20,22 @@ public class TagDAOImpl implements TagDAO {
     }
 
     @Override
+    public List<Tag> findTagsUsedByDecks() {
+        return em.createQuery(
+                        "select t from Tag t where exists (select 1 from t.decks d) order by lower(t.name)",
+                        Tag.class)
+                .getResultList();
+    }
+
+    @Override
+    public List<Tag> findTagsUsedByCards() {
+        return em.createQuery(
+                        "select t from Tag t where exists (select 1 from t.cards c) order by lower(t.name)",
+                        Tag.class)
+                .getResultList();
+    }
+
+    @Override
     public <S extends Tag> S save(S entity) {
         if (entity.getId() != null && entity.getId() > 0L) {
             em.merge(entity);
