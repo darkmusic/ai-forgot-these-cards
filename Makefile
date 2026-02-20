@@ -63,7 +63,7 @@ PORTABLE_IMPORT_MODE ?= truncate
 	build up down restart build-deploy delete-redeploy down-with-volumes tail-tomcat-logs \
 	redeploy-watch build-app-image build-web-image export-delete-redeploy \
 	build-app-image-nocache build-web-image-nocache build-nocache \
-	redeploy-app build-deploy-nocache \
+	redeploy-app redeploy-web build-deploy-nocache \
 	up-sqlite up-core-sqlite redeploy-app-sqlite build-deploy-sqlite build-deploy-sqlite-nocache \
 	run-standalone-sqlite run-standalone-postgres \
 	portable-export-postgres portable-export-sqlite portable-import-postgres portable-import-sqlite validate-portable \
@@ -328,25 +328,34 @@ redeploy-app-sqlite:
 		-v "$(SQLITE_HOST_DIR_ABS):$(SQLITE_CONTAINER_DIR)" \
 		"$(APP_IMAGE)"
 
+redeploy-web:
+	@if docker ps -a --format '{{.Names}}' | grep -qx "$(WEB_CONTAINER)"; then docker rm -f "$(WEB_CONTAINER)"; fi
+	@docker run -d --name "$(WEB_CONTAINER)" --network "$(DOCKER_NETWORK)" -p "$(WEB_HOST_PORT):80" --env-file .env \
+		"$(WEB_IMAGE)"
+
 build-deploy:
 	@$(MAKE) build
 	@$(MAKE) up
 	@$(MAKE) redeploy-app
+	@$(MAKE) redeploy-web
 
 build-deploy-nocache:
 	@$(MAKE) build-nocache
 	@$(MAKE) up
 	@$(MAKE) redeploy-app
+	@$(MAKE) redeploy-web
 
 build-deploy-sqlite:
 	@$(MAKE) build
 	@$(MAKE) up-sqlite
 	@$(MAKE) redeploy-app-sqlite
+	@$(MAKE) redeploy-web
 
 build-deploy-sqlite-nocache:
 	@$(MAKE) build-nocache
 	@$(MAKE) up-sqlite
 	@$(MAKE) redeploy-app-sqlite
+	@$(MAKE) redeploy-web
 
 #######################################################################
 # Portable DB Export/Import (Postgres <-> SQLite)
@@ -535,6 +544,7 @@ help:
 	@echo "  portable-import-postgres      - Import ./db/portable-dump.zip into Postgres (PORTABLE_IMPORT_MODE=truncate|fail-if-not-empty)."
 	@echo "  portable-import-sqlite        - Import ./db/portable-dump.zip into SQLite (./db/cards.db) (PORTABLE_IMPORT_MODE=truncate|fail-if-not-empty)."
 	@echo "  redeploy-watch                - Redeploy and watch application logs."
+	@echo "  redeploy-web                  - Recreate the web (Nginx) container using the current web image."
 	@echo "  restart                       - Restart the application, database, and web containers."
 	@echo "  run-standalone-postgres       - Run the executable WAR locally with an external Postgres (no containers)."
 	@echo "  run-standalone-sqlite         - Run the executable WAR locally with SQLite single-file DB (no containers)."
