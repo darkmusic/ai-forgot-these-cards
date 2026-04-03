@@ -1,0 +1,7 @@
+*.properties
+.env
+dep/llama.cpp
+target
+db
+.vscode
+.idea
