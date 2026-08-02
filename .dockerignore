@@ -11,6 +11,8 @@
 !dep/ai-forgot-this-frontend/**
 !dockerfiles/app/Dockerfile
 !dockerfiles/web/**
+!dockerfiles/tts/Dockerfile
+!services/tts/**
 
 # Optional: allow these for local dev/docs (harmless if present)
 !mvnw

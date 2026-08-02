@@ -28,6 +28,7 @@ flowchart TD
          CHAT["Spring AI ChatClient\nOpenAI-compatible API"]
          OPENAI["OpenAI hosted"]
          LLAMA["Llama.cpp server\nOpenAI-compatible"]
+         TTS["Python TTS sidecar\nFastAPI + PyTorch"]
       end
 
       NEXUS["Sonatype Nexus - optional build-time cache"]
@@ -41,6 +42,7 @@ flowchart TD
    APP -->|Chat requests optional| CHAT
    CHAT -->|Hosted| OPENAI
    CHAT -->|Local/remote| LLAMA
+   APP -->|TTS synthesis optional| TTS
 
    APP -.->|Maven deps optional| NEXUS
 ```
@@ -50,5 +52,6 @@ flowchart TD
 - **Core stack**: app + database (app serves UI + API)
 - **Full stack**: Nginx serves the SPA and proxies `/api` to the app
 - **SQLite variants**: replace Postgres with a mounted SQLite `.db` file
+- **TTS sidecar**: optional FastAPI/PyTorch container enabled with `ENABLE_TTS=1`
 
 See: [Deployment.md](Deployment.md)

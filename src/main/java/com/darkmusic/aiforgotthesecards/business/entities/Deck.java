@@ -50,4 +50,13 @@ public class Deck {
     @JdbcTypeCode(SqlTypes.LONGVARCHAR)
     @Column(name="template_back")
     private String templateBack;
+
+    @Column(name="tts_enabled", nullable = false)
+    private boolean ttsEnabled = false;
+
+    @Column(name="tts_model_id")
+    private String ttsModelId;
+
+    @Column(name="tts_default_preset_id")
+    private Long ttsDefaultPresetId;
 }

@@ -57,10 +57,12 @@ public class PortableDumpService {
             TableSpec.of("deck", List.of("id")),
             TableSpec.of("tag", List.of("id")),
             TableSpec.of("deck_tag", List.of("deck_id", "tag_id")),
+            TableSpec.of("tts_preset", List.of("id")),
             TableSpec.of("card", List.of("id")),
             TableSpec.of("card_tag", List.of("card_id", "tag_id")),
             TableSpec.of("user_card_srs", List.of("id")),
-            TableSpec.of("ai_chat", List.of("id"))
+            TableSpec.of("ai_chat", List.of("id")),
+            TableSpec.of("tts_audio", List.of("id"))
     );
 
     private static final List<TableSpec> TABLES_IN_DELETE_ORDER;

@@ -5,17 +5,21 @@ DOCKER_NETWORK := cards-net
 DB_CONTAINER := db
 APP_CONTAINER := app
 WEB_CONTAINER := web
+TTS_CONTAINER := tts
 NEXUS_DATA_CONTAINER := nexus-data
 NEXUS_CONTAINER := nexus
 APP_IMAGE := aiforgot/app:latest
 WEB_IMAGE := aiforgot/web:latest
+TTS_IMAGE := aiforgot/tts:latest
 DB_VOLUME := pgdata
+TTS_MODEL_CACHE_VOLUME := tts-model-cache
 
 # Load optional environment overrides from .env (if present)
 ifneq (,$(wildcard .env))
 include .env
 export USE_NEXUS_MAVEN NEXUS_MAVEN_MIRROR_URL POSTGRES_USER POSTGRES_DB
 export DB_VENDOR SQLITE_DB_PATH
+export ENABLE_TTS TTS_SERVICE_URL TTS_STORAGE_DIR TTS_REQUEST_TIMEOUT TTS_HOST_PORT HF_TOKEN
 export NEXUS_APT_MIRROR_ARCHIVE_UBUNTU_NOBLE_URL NEXUS_APT_MIRROR_SECURITY_UBUNTU_NOBLE_URL
 export NEXUS_APT_MIRROR_DEBIAN_BOOKWORM_URL NEXUS_APT_MIRROR_SECURITY_DEBIAN_BOOKWORM_URL
 endif
@@ -38,6 +42,10 @@ DOCKER_HOST_GATEWAY ?= --add-host=host.docker.internal:host-gateway
 # Allow overriding ports via .env (APP_SERVER_PORT already exists there)
 APP_SERVER_PORT ?= 8080
 WEB_HOST_PORT ?= 8086
+ENABLE_TTS ?= 0
+TTS_HOST_PORT ?= 8091
+TTS_HOST_DIR ?= ./data
+TTS_HOST_DIR_ABS = $(abspath $(TTS_HOST_DIR))
 
 # Database vendor selection (default: postgres). If DB_VENDOR=sqlite, we skip creating the Postgres container.
 DB_VENDOR ?= postgres
@@ -62,8 +70,9 @@ PORTABLE_IMPORT_MODE ?= truncate
 	list-backups \
 	build up down restart build-deploy delete-redeploy down-with-volumes tail-tomcat-logs \
 	redeploy-watch build-app-image build-web-image export-delete-redeploy \
-	build-app-image-nocache build-web-image-nocache build-nocache \
+	build-app-image-nocache build-web-image-nocache build-tts-image build-tts-image-nocache build-nocache \
 	redeploy-app redeploy-web build-deploy-nocache \
+	redeploy-tts \
 	up-sqlite up-core-sqlite redeploy-app-sqlite build-deploy-sqlite build-deploy-sqlite-nocache \
 	run-standalone-sqlite run-standalone-postgres \
 	portable-export-postgres portable-export-sqlite portable-import-postgres portable-import-sqlite validate-portable \
@@ -223,15 +232,34 @@ build-web-image:
 build-web-image-nocache: WEB_DOCKER_BUILD_FLAGS=--no-cache
 build-web-image-nocache: build-web-image
 
+build-tts-image:
+	@docker build -t "$(TTS_IMAGE)" -f dockerfiles/tts/Dockerfile .
+
+build-tts-image-nocache:
+	@docker build --no-cache -t "$(TTS_IMAGE)" -f dockerfiles/tts/Dockerfile .
+
 build: build-app-image build-web-image
+	@if [ "$(ENABLE_TTS)" = "1" ]; then $(MAKE) build-tts-image; fi
 
 build-nocache: build-app-image-nocache build-web-image-nocache
+	@if [ "$(ENABLE_TTS)" = "1" ]; then $(MAKE) build-tts-image-nocache; fi
 
 up:
 	@# ensure network and volume
 	@docker network inspect "$(DOCKER_NETWORK)" >/dev/null 2>&1 || docker network create "$(DOCKER_NETWORK)"
+	@mkdir -p "$(TTS_HOST_DIR_ABS)"
 	@if [ "$(DB_VENDOR)" != "sqlite" ]; then \
 		docker volume inspect "$(DB_VOLUME)" >/dev/null 2>&1 || docker volume create "$(DB_VOLUME)" >/dev/null; \
+	fi
+	@if [ "$(ENABLE_TTS)" = "1" ]; then \
+		docker volume inspect "$(TTS_MODEL_CACHE_VOLUME)" >/dev/null 2>&1 || docker volume create "$(TTS_MODEL_CACHE_VOLUME)" >/dev/null; \
+		if ! docker ps -a --format '{{.Names}}' | grep -qx "$(TTS_CONTAINER)"; then \
+			docker run -d --name "$(TTS_CONTAINER)" --network "$(DOCKER_NETWORK)" -p "$(TTS_HOST_PORT):8091" \
+				--env-file .env -v "$(TTS_MODEL_CACHE_VOLUME):/models" \
+				"$(TTS_IMAGE)"; \
+		else \
+			if ! docker ps --format '{{.Names}}' | grep -qx "$(TTS_CONTAINER)"; then docker start "$(TTS_CONTAINER)"; fi; \
+		fi; \
 	fi
 
 	@# db (postgres): create or start (skipped when DB_VENDOR=sqlite)
@@ -248,7 +276,7 @@ up:
 	@# app: create or start
 	@if ! docker ps -a --format '{{.Names}}' | grep -qx "$(APP_CONTAINER)"; then \
 		docker run $(DOCKER_HOST_GATEWAY) -d --name "$(APP_CONTAINER)" --network "$(DOCKER_NETWORK)" -p "$(APP_SERVER_PORT):8080" -p "9090:9090" \
-			--env-file .env "$(APP_IMAGE)"; \
+			--env-file .env -v "$(TTS_HOST_DIR_ABS):/data" "$(APP_IMAGE)"; \
 	else \
 		if ! docker ps --format '{{.Names}}' | grep -qx "$(APP_CONTAINER)"; then docker start "$(APP_CONTAINER)"; fi; \
 	fi
@@ -264,6 +292,7 @@ up:
 down:
 	@if docker ps -a --format '{{.Names}}' | grep -qx "$(WEB_CONTAINER)"; then docker rm -f "$(WEB_CONTAINER)"; fi
 	@if docker ps -a --format '{{.Names}}' | grep -qx "$(APP_CONTAINER)"; then docker rm -f "$(APP_CONTAINER)"; fi
+	@if docker ps -a --format '{{.Names}}' | grep -qx "$(TTS_CONTAINER)"; then docker rm -f "$(TTS_CONTAINER)"; fi
 	@if docker ps -a --format '{{.Names}}' | grep -qx "$(DB_CONTAINER)"; then docker rm -f "$(DB_CONTAINER)"; fi
 
 restart: down up
@@ -274,20 +303,38 @@ stop:
 
 redeploy-app:
 	@if docker ps -a --format '{{.Names}}' | grep -qx "$(APP_CONTAINER)"; then docker rm -f "$(APP_CONTAINER)"; fi
+	@mkdir -p "$(TTS_HOST_DIR_ABS)"
 	@docker run $(DOCKER_HOST_GATEWAY) -d --name "$(APP_CONTAINER)" --network "$(DOCKER_NETWORK)" -p "$(APP_SERVER_PORT):8080" -p "9090:9090" \
-		--env-file .env "$(APP_IMAGE)"
+		--env-file .env -v "$(TTS_HOST_DIR_ABS):/data" "$(APP_IMAGE)"
+
+redeploy-tts:
+	@if docker ps -a --format '{{.Names}}' | grep -qx "$(TTS_CONTAINER)"; then docker rm -f "$(TTS_CONTAINER)"; fi
+	@docker volume inspect "$(TTS_MODEL_CACHE_VOLUME)" >/dev/null 2>&1 || docker volume create "$(TTS_MODEL_CACHE_VOLUME)" >/dev/null
+	@docker run -d --name "$(TTS_CONTAINER)" --network "$(DOCKER_NETWORK)" -p "$(TTS_HOST_PORT):8091" \
+		--env-file .env -v "$(TTS_MODEL_CACHE_VOLUME):/models" "$(TTS_IMAGE)"
 
 # SQLite mode: mount ./db into the app container and write the DB there
 up-sqlite:
 	@# ensure network and local sqlite directory
 	@docker network inspect "$(DOCKER_NETWORK)" >/dev/null 2>&1 || docker network create "$(DOCKER_NETWORK)"
 	@mkdir -p "$(SQLITE_HOST_DIR_ABS)"
+	@mkdir -p "$(TTS_HOST_DIR_ABS)"
+	@if [ "$(ENABLE_TTS)" = "1" ]; then \
+		docker volume inspect "$(TTS_MODEL_CACHE_VOLUME)" >/dev/null 2>&1 || docker volume create "$(TTS_MODEL_CACHE_VOLUME)" >/dev/null; \
+		if ! docker ps -a --format '{{.Names}}' | grep -qx "$(TTS_CONTAINER)"; then \
+			docker run -d --name "$(TTS_CONTAINER)" --network "$(DOCKER_NETWORK)" -p "$(TTS_HOST_PORT):8091" \
+				--env-file .env -v "$(TTS_MODEL_CACHE_VOLUME):/models" \
+				"$(TTS_IMAGE)"; \
+		else \
+			if ! docker ps --format '{{.Names}}' | grep -qx "$(TTS_CONTAINER)"; then docker start "$(TTS_CONTAINER)"; fi; \
+		fi; \
+	fi
 
 	@# app: create or start (sqlite)
 	@if ! docker ps -a --format '{{.Names}}' | grep -qx "$(APP_CONTAINER)"; then \
 		docker run $(DOCKER_HOST_GATEWAY) -d --name "$(APP_CONTAINER)" --network "$(DOCKER_NETWORK)" -p "$(APP_SERVER_PORT):8080" -p "9090:9090" \
 			--env-file .env -e DB_VENDOR=sqlite -e SQLITE_DB_PATH="$(SQLITE_CONTAINER_DB_PATH)" \
-			-v "$(SQLITE_HOST_DIR_ABS):$(SQLITE_CONTAINER_DIR)" \
+			-v "$(SQLITE_HOST_DIR_ABS):$(SQLITE_CONTAINER_DIR)" -v "$(TTS_HOST_DIR_ABS):/data" \
 			"$(APP_IMAGE)"; \
 	else \
 		if ! docker ps --format '{{.Names}}' | grep -qx "$(APP_CONTAINER)"; then docker start "$(APP_CONTAINER)"; fi; \
@@ -305,12 +352,13 @@ up-core-sqlite:
 	@# ensure network and local sqlite directory
 	@docker network inspect "$(DOCKER_NETWORK)" >/dev/null 2>&1 || docker network create "$(DOCKER_NETWORK)"
 	@mkdir -p "$(SQLITE_HOST_DIR_ABS)"
+	@mkdir -p "$(TTS_HOST_DIR_ABS)"
 
 	@# app: create or start (sqlite)
 	@if ! docker ps -a --format '{{.Names}}' | grep -qx "$(APP_CONTAINER)"; then \
 		docker run $(DOCKER_HOST_GATEWAY) -d --name "$(APP_CONTAINER)" --network "$(DOCKER_NETWORK)" -p "$(APP_SERVER_PORT):8080" -p "9090:9090" \
 			--env-file .env -e DB_VENDOR=sqlite -e SQLITE_DB_PATH="$(SQLITE_CONTAINER_DB_PATH)" \
-			-v "$(SQLITE_HOST_DIR_ABS):$(SQLITE_CONTAINER_DIR)" \
+			-v "$(SQLITE_HOST_DIR_ABS):$(SQLITE_CONTAINER_DIR)" -v "$(TTS_HOST_DIR_ABS):/data" \
 			"$(APP_IMAGE)"; \
 	else \
 		if ! docker ps --format '{{.Names}}' | grep -qx "$(APP_CONTAINER)"; then docker start "$(APP_CONTAINER)"; fi; \
@@ -323,9 +371,10 @@ up-core-sqlite:
 redeploy-app-sqlite:
 	@if docker ps -a --format '{{.Names}}' | grep -qx "$(APP_CONTAINER)"; then docker rm -f "$(APP_CONTAINER)"; fi
 	@mkdir -p "$(SQLITE_HOST_DIR_ABS)"
+	@mkdir -p "$(TTS_HOST_DIR_ABS)"
 	@docker run $(DOCKER_HOST_GATEWAY) -d --name "$(APP_CONTAINER)" --network "$(DOCKER_NETWORK)" -p "$(APP_SERVER_PORT):8080" -p "9090:9090" \
 		--env-file .env -e DB_VENDOR=sqlite -e SQLITE_DB_PATH="$(SQLITE_CONTAINER_DB_PATH)" \
-		-v "$(SQLITE_HOST_DIR_ABS):$(SQLITE_CONTAINER_DIR)" \
+		-v "$(SQLITE_HOST_DIR_ABS):$(SQLITE_CONTAINER_DIR)" -v "$(TTS_HOST_DIR_ABS):/data" \
 		"$(APP_IMAGE)"
 
 redeploy-web:
@@ -336,24 +385,28 @@ redeploy-web:
 build-deploy:
 	@$(MAKE) build
 	@$(MAKE) up
+	@if [ "$(ENABLE_TTS)" = "1" ]; then $(MAKE) redeploy-tts; fi
 	@$(MAKE) redeploy-app
 	@$(MAKE) redeploy-web
 
 build-deploy-nocache:
 	@$(MAKE) build-nocache
 	@$(MAKE) up
+	@if [ "$(ENABLE_TTS)" = "1" ]; then $(MAKE) redeploy-tts; fi
 	@$(MAKE) redeploy-app
 	@$(MAKE) redeploy-web
 
 build-deploy-sqlite:
 	@$(MAKE) build
 	@$(MAKE) up-sqlite
+	@if [ "$(ENABLE_TTS)" = "1" ]; then $(MAKE) redeploy-tts; fi
 	@$(MAKE) redeploy-app-sqlite
 	@$(MAKE) redeploy-web
 
 build-deploy-sqlite-nocache:
 	@$(MAKE) build-nocache
 	@$(MAKE) up-sqlite
+	@if [ "$(ENABLE_TTS)" = "1" ]; then $(MAKE) redeploy-tts; fi
 	@$(MAKE) redeploy-app-sqlite
 	@$(MAKE) redeploy-web
 
