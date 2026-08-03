@@ -58,11 +58,7 @@ public class TagUsedQueriesPostgresTest {
         registry.add("spring.datasource.password", postgres::getPassword);
         registry.add("spring.datasource.driver-class-name", postgres::getDriverClassName);
 
-        // Ensure Hibernate generates schema for the container DB.
-        // NOTE: We intentionally avoid create-drop here. Hibernate performs the DROP during
-        // Spring shutdown, which can block if the DataSource is closing, causing Surefire to
-        // wait and eventually kill the forked JVM.
-        registry.add("spring.jpa.hibernate.ddl-auto", () -> "create");
+        registry.add("spring.jpa.hibernate.ddl-auto", () -> "validate");
 
         // Avoid running init scripts intended for H2.
         registry.add("spring.sql.init.mode", () -> "never");

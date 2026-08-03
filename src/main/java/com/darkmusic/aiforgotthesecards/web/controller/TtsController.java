@@ -5,6 +5,7 @@ import com.darkmusic.aiforgotthesecards.business.entities.User;
 import com.darkmusic.aiforgotthesecards.business.entities.repositories.UserDAO;
 import com.darkmusic.aiforgotthesecards.business.entities.services.TtsService;
 import com.darkmusic.aiforgotthesecards.web.contracts.DeckTtsSettings;
+import com.darkmusic.aiforgotthesecards.web.contracts.TtsPlaybackItem;
 import lombok.Getter;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
@@ -15,13 +16,14 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Getter
 @RestController
 public class TtsController {
-    private static final long SSE_EMITTER_TIMEOUT_MS = 15 * 60 * 1000L;
-    private static final long HEARTBEAT_INTERVAL_MS = 30_000L;
+    private static final long SSE_EMITTER_TIMEOUT_MS = 60 * 60 * 1000L;
+    private static final long HEARTBEAT_INTERVAL_MS = 15_000L;
 
     private final TtsService ttsService;
     private final UserDAO userDAO;
@@ -45,8 +47,20 @@ public class TtsController {
         return ttsService.saveDeckSettings(id, settings, currentUser(authentication));
     }
 
+    @GetMapping("/api/tts/card/{cardId}/items")
+    public List<TtsPlaybackItem> getCardTtsItems(Authentication authentication, @PathVariable long cardId)
+            throws IOException {
+        return ttsService.getPlaybackItems(cardId, currentUser(authentication));
+    }
+
     @PostMapping(value = "/api/tts/card/{cardId}/generate", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter generateCardAudio(Authentication authentication, @PathVariable long cardId) {
+    public SseEmitter generateCardAudio(
+            Authentication authentication,
+            @PathVariable long cardId,
+            @RequestParam(required = false) String target,
+            @RequestParam(required = false) String variant,
+            @RequestParam(defaultValue = "false") boolean force
+    ) {
         User user = currentUser(authentication);
         AtomicBoolean finished = new AtomicBoolean(false);
         SseEmitter emitter = new SseEmitter(SSE_EMITTER_TIMEOUT_MS);
@@ -58,10 +72,7 @@ public class TtsController {
         emitter.onError(t -> finished.set(true));
 
         Thread.ofVirtual().name("tts-request-", 0L).start(() -> {
-            try {
-                emitter.send(SseEmitter.event().comment("processing"));
-            } catch (IOException e) {
-                emitter.completeWithError(e);
+            if (!sendStatus(emitter, finished, "Starting TTS request")) {
                 return;
             }
 
@@ -70,19 +81,19 @@ public class TtsController {
                     try {
                         Thread.sleep(HEARTBEAT_INTERVAL_MS);
                         if (!finished.get()) {
-                            emitter.send(SseEmitter.event().comment("heartbeat"));
+                            sendStatus(emitter, finished,
+                                    "Still working; model load or generation may take several minutes");
                         }
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
-                        break;
-                    } catch (IOException e) {
                         break;
                     }
                 }
             });
 
             try {
-                var response = ttsService.generateForCard(cardId, user);
+                var response = ttsService.generateForCard(cardId, target, variant, user, force,
+                        message -> sendStatus(emitter, finished, message));
                 finished.set(true);
                 emitter.send(SseEmitter.event().name("done").data(response));
                 emitter.complete();
@@ -99,6 +110,20 @@ public class TtsController {
         });
 
         return emitter;
+    }
+
+    private boolean sendStatus(SseEmitter emitter, AtomicBoolean finished, String message) {
+        if (finished.get()) {
+            return false;
+        }
+        try {
+            emitter.send(SseEmitter.event().name("status").data(message));
+            return true;
+        } catch (IOException e) {
+            finished.set(true);
+            emitter.completeWithError(e);
+            return false;
+        }
     }
 
     @GetMapping("/api/tts/audio/{audioId}")

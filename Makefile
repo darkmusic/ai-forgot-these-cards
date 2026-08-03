@@ -1,4 +1,5 @@
 SHELL := bash
+comma := ,
 
 # All build steps are containerized; no local JDK/Node/Maven required
 DOCKER_NETWORK := cards-net
@@ -19,7 +20,8 @@ ifneq (,$(wildcard .env))
 include .env
 export USE_NEXUS_MAVEN NEXUS_MAVEN_MIRROR_URL POSTGRES_USER POSTGRES_DB
 export DB_VENDOR SQLITE_DB_PATH
-export ENABLE_TTS TTS_SERVICE_URL TTS_STORAGE_DIR TTS_REQUEST_TIMEOUT TTS_HOST_PORT HF_TOKEN
+export ENABLE_TTS TTS_SERVICE_URL TTS_STORAGE_DIR TTS_REQUEST_TIMEOUT TTS_HOST_PORT HF_TOKEN TTS_PRELOAD_MODELS
+export TTS_TORCH_INDEX_URL TTS_TORCH_VERSION TTS_TORCHAUDIO_VERSION TTS_DOCKER_RUN_FLAGS
 export NEXUS_APT_MIRROR_ARCHIVE_UBUNTU_NOBLE_URL NEXUS_APT_MIRROR_SECURITY_UBUNTU_NOBLE_URL
 export NEXUS_APT_MIRROR_DEBIAN_BOOKWORM_URL NEXUS_APT_MIRROR_SECURITY_DEBIAN_BOOKWORM_URL
 endif
@@ -35,6 +37,7 @@ NEXUS_MAVEN_MIRROR_URL ?= http://host.docker.internal:8081/repository/maven-publ
 # Optional flags for Docker build commands (e.g., --no-cache)
 APP_DOCKER_BUILD_FLAGS ?=
 WEB_DOCKER_BUILD_FLAGS ?=
+TTS_DOCKER_BUILD_FLAGS ?=
 
 # Linux helper so containers can reach services running on the host
 DOCKER_HOST_GATEWAY ?= --add-host=host.docker.internal:host-gateway
@@ -46,6 +49,11 @@ ENABLE_TTS ?= 0
 TTS_HOST_PORT ?= 8091
 TTS_HOST_DIR ?= ./data
 TTS_HOST_DIR_ABS = $(abspath $(TTS_HOST_DIR))
+TTS_PRELOAD_MODELS ?=
+TTS_TORCH_INDEX_URL ?= https://download.pytorch.org/whl/cpu
+TTS_TORCH_VERSION ?= 2.6.0+cpu
+TTS_TORCHAUDIO_VERSION ?= 2.6.0+cpu
+TTS_DOCKER_RUN_FLAGS ?=
 
 # Database vendor selection (default: postgres). If DB_VENDOR=sqlite, we skip creating the Postgres container.
 DB_VENDOR ?= postgres
@@ -75,6 +83,7 @@ PORTABLE_IMPORT_MODE ?= truncate
 	redeploy-tts \
 	up-sqlite up-core-sqlite redeploy-app-sqlite build-deploy-sqlite build-deploy-sqlite-nocache \
 	run-standalone-sqlite run-standalone-postgres \
+	db-migrate-postgres db-migrate-sqlite db-info-postgres db-info-sqlite db-validate-postgres db-validate-sqlite db-baseline-postgres db-baseline-sqlite \
 	portable-export-postgres portable-export-sqlite portable-import-postgres portable-import-sqlite validate-portable \
 	migrate-postgres-to-sqlite migrate-sqlite-to-postgres
 
@@ -233,10 +242,16 @@ build-web-image-nocache: WEB_DOCKER_BUILD_FLAGS=--no-cache
 build-web-image-nocache: build-web-image
 
 build-tts-image:
-	@docker build -t "$(TTS_IMAGE)" -f dockerfiles/tts/Dockerfile .
+	@docker build $(TTS_DOCKER_BUILD_FLAGS) \
+		--build-arg TTS_PRELOAD_MODELS="$(TTS_PRELOAD_MODELS)" \
+		--build-arg TTS_TORCH_INDEX_URL="$(TTS_TORCH_INDEX_URL)" \
+		--build-arg TTS_TORCH_VERSION="$(TTS_TORCH_VERSION)" \
+		--build-arg TTS_TORCHAUDIO_VERSION="$(TTS_TORCHAUDIO_VERSION)" \
+		$(if $(HF_TOKEN),--secret id=hf_token$(comma)env=HF_TOKEN,) \
+		-t "$(TTS_IMAGE)" -f dockerfiles/tts/Dockerfile .
 
-build-tts-image-nocache:
-	@docker build --no-cache -t "$(TTS_IMAGE)" -f dockerfiles/tts/Dockerfile .
+build-tts-image-nocache: TTS_DOCKER_BUILD_FLAGS=--no-cache
+build-tts-image-nocache: build-tts-image
 
 build: build-app-image build-web-image
 	@if [ "$(ENABLE_TTS)" = "1" ]; then $(MAKE) build-tts-image; fi
@@ -254,7 +269,7 @@ up:
 	@if [ "$(ENABLE_TTS)" = "1" ]; then \
 		docker volume inspect "$(TTS_MODEL_CACHE_VOLUME)" >/dev/null 2>&1 || docker volume create "$(TTS_MODEL_CACHE_VOLUME)" >/dev/null; \
 		if ! docker ps -a --format '{{.Names}}' | grep -qx "$(TTS_CONTAINER)"; then \
-			docker run -d --name "$(TTS_CONTAINER)" --network "$(DOCKER_NETWORK)" -p "$(TTS_HOST_PORT):8091" \
+			docker run $(TTS_DOCKER_RUN_FLAGS) -d --name "$(TTS_CONTAINER)" --network "$(DOCKER_NETWORK)" -p "$(TTS_HOST_PORT):8091" \
 				--env-file .env -v "$(TTS_MODEL_CACHE_VOLUME):/models" \
 				"$(TTS_IMAGE)"; \
 		else \
@@ -298,8 +313,7 @@ down:
 restart: down up
 
 stop:
-	@docker stop "$(WEB_CONTAINER)" "$(APP_CONTAINER)" "$(DB_CONTAINER)"
-
+	@docker stop "$(WEB_CONTAINER)" "$(APP_CONTAINER)" "$(DB_CONTAINER)" "$(TTS_CONTAINER)"
 
 redeploy-app:
 	@if docker ps -a --format '{{.Names}}' | grep -qx "$(APP_CONTAINER)"; then docker rm -f "$(APP_CONTAINER)"; fi
@@ -310,7 +324,7 @@ redeploy-app:
 redeploy-tts:
 	@if docker ps -a --format '{{.Names}}' | grep -qx "$(TTS_CONTAINER)"; then docker rm -f "$(TTS_CONTAINER)"; fi
 	@docker volume inspect "$(TTS_MODEL_CACHE_VOLUME)" >/dev/null 2>&1 || docker volume create "$(TTS_MODEL_CACHE_VOLUME)" >/dev/null
-	@docker run -d --name "$(TTS_CONTAINER)" --network "$(DOCKER_NETWORK)" -p "$(TTS_HOST_PORT):8091" \
+	@docker run $(TTS_DOCKER_RUN_FLAGS) -d --name "$(TTS_CONTAINER)" --network "$(DOCKER_NETWORK)" -p "$(TTS_HOST_PORT):8091" \
 		--env-file .env -v "$(TTS_MODEL_CACHE_VOLUME):/models" "$(TTS_IMAGE)"
 
 # SQLite mode: mount ./db into the app container and write the DB there
@@ -322,7 +336,7 @@ up-sqlite:
 	@if [ "$(ENABLE_TTS)" = "1" ]; then \
 		docker volume inspect "$(TTS_MODEL_CACHE_VOLUME)" >/dev/null 2>&1 || docker volume create "$(TTS_MODEL_CACHE_VOLUME)" >/dev/null; \
 		if ! docker ps -a --format '{{.Names}}' | grep -qx "$(TTS_CONTAINER)"; then \
-			docker run -d --name "$(TTS_CONTAINER)" --network "$(DOCKER_NETWORK)" -p "$(TTS_HOST_PORT):8091" \
+			docker run $(TTS_DOCKER_RUN_FLAGS) -d --name "$(TTS_CONTAINER)" --network "$(DOCKER_NETWORK)" -p "$(TTS_HOST_PORT):8091" \
 				--env-file .env -v "$(TTS_MODEL_CACHE_VOLUME):/models" \
 				"$(TTS_IMAGE)"; \
 		else \
@@ -413,6 +427,77 @@ build-deploy-sqlite-nocache:
 #######################################################################
 # Portable DB Export/Import (Postgres <-> SQLite)
 #######################################################################
+
+#######################################################################
+# Versioned DB Schema Migrations (Flyway)
+#######################################################################
+
+define ensure_postgres_container
+	@docker network inspect "$(DOCKER_NETWORK)" >/dev/null 2>&1 || docker network create "$(DOCKER_NETWORK)"
+	@docker volume inspect "$(DB_VOLUME)" >/dev/null 2>&1 || docker volume create "$(DB_VOLUME)" >/dev/null
+	@if ! docker ps -a --format '{{.Names}}' | grep -qx "$(DB_CONTAINER)"; then \
+		docker run -d --name "$(DB_CONTAINER)" --network "$(DOCKER_NETWORK)" -p "5433:5432" \
+			--env-file .env -v "$(DB_VOLUME):/var/lib/postgresql/data" \
+			postgres:17 postgres -c max_locks_per_transaction=1024 -c shared_buffers=1GB -c shared_preload_libraries=pg_stat_statements -c pg_stat_statements.track=all -c max_connections=200 -c listen_addresses='*'; \
+	else \
+		if ! docker ps --format '{{.Names}}' | grep -qx "$(DB_CONTAINER)"; then docker start "$(DB_CONTAINER)"; fi; \
+	fi
+endef
+
+define run_flyway_postgres
+	@docker run --rm --network "$(DOCKER_NETWORK)" --env-file .env \
+		"$(APP_IMAGE)" \
+		java -jar /usr/local/tomcat/ROOT-exec.war \
+			--server.port=0 --management.server.port=0 \
+			--spring.flyway.enabled=false \
+			--spring.jpa.hibernate.ddl-auto=none \
+			--aiforgot.flyway.command="$(1)"
+endef
+
+define run_flyway_sqlite
+	@mkdir -p "$(SQLITE_HOST_DIR_ABS)"
+	@docker run --rm --network "$(DOCKER_NETWORK)" --env-file .env \
+		-e DB_VENDOR=sqlite -e SQLITE_DB_PATH="$(SQLITE_CONTAINER_DB_PATH)" \
+		-v "$(SQLITE_HOST_DIR_ABS):$(SQLITE_CONTAINER_DIR)" \
+		"$(APP_IMAGE)" \
+		java -jar /usr/local/tomcat/ROOT-exec.war \
+			--server.port=0 --management.server.port=0 \
+			--spring.flyway.enabled=false \
+			--spring.jpa.hibernate.ddl-auto=none \
+			--aiforgot.flyway.command="$(1)"
+endef
+
+db-migrate-postgres:
+	$(call ensure_postgres_container)
+	$(call run_flyway_postgres,migrate)
+
+db-migrate-sqlite:
+	@docker network inspect "$(DOCKER_NETWORK)" >/dev/null 2>&1 || docker network create "$(DOCKER_NETWORK)"
+	$(call run_flyway_sqlite,migrate)
+
+db-info-postgres:
+	$(call ensure_postgres_container)
+	$(call run_flyway_postgres,info)
+
+db-info-sqlite:
+	@docker network inspect "$(DOCKER_NETWORK)" >/dev/null 2>&1 || docker network create "$(DOCKER_NETWORK)"
+	$(call run_flyway_sqlite,info)
+
+db-validate-postgres:
+	$(call ensure_postgres_container)
+	$(call run_flyway_postgres,validate)
+
+db-validate-sqlite:
+	@docker network inspect "$(DOCKER_NETWORK)" >/dev/null 2>&1 || docker network create "$(DOCKER_NETWORK)"
+	$(call run_flyway_sqlite,validate)
+
+db-baseline-postgres:
+	$(call ensure_postgres_container)
+	$(call run_flyway_postgres,baseline)
+
+db-baseline-sqlite:
+	@docker network inspect "$(DOCKER_NETWORK)" >/dev/null 2>&1 || docker network create "$(DOCKER_NETWORK)"
+	$(call run_flyway_sqlite,baseline)
 
 # Export from Postgres (db container) to a portable ZIP at ./db/portable-dump.zip
 portable-export-postgres:
@@ -580,6 +665,14 @@ help:
 	@echo "  down-core                     - Stop and remove only the application + database containers."
 	@echo "  down-with-volumes             - Stop and remove containers and associated volumes."
 	@echo "  drop-and-recreate-db          - Drop and recreate the PostgreSQL database."
+	@echo "  db-baseline-postgres          - Mark an existing PostgreSQL schema as Flyway V1."
+	@echo "  db-baseline-sqlite            - Mark an existing SQLite schema as Flyway V1."
+	@echo "  db-info-postgres              - Show PostgreSQL Flyway migration status."
+	@echo "  db-info-sqlite                - Show SQLite Flyway migration status."
+	@echo "  db-migrate-postgres           - Apply pending PostgreSQL Flyway migrations."
+	@echo "  db-migrate-sqlite             - Apply pending SQLite Flyway migrations."
+	@echo "  db-validate-postgres          - Validate PostgreSQL Flyway migrations."
+	@echo "  db-validate-sqlite            - Validate SQLite Flyway migrations."
 	@echo "  export-db                     - Export the PostgreSQL database to db/backup.sql."
 	@echo "  export-db-container           - Export the PostgreSQL database from the DB container to db/backup.sql."
 	@echo "  export-delete-redeploy        - Export DB, delete containers/volumes, redeploy, and import DB."

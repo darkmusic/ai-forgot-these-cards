@@ -71,7 +71,7 @@ java -jar ai-forgot-these-cards-<version>-exec.war
 
 Notes:
 
-- The schema is managed by Hibernate (`ddl-auto=update`).
+- The schema is managed by Flyway migrations; Hibernate validates the migrated schema at startup.
 - If you want the app to listen on a different port, set `APP_SERVER_PORT`.
 
 ### Optional: AI configuration

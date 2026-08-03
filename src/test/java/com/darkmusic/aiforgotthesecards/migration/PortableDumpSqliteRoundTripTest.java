@@ -35,7 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
         properties = {
                 "DB_VENDOR=sqlite",
                 "SQLITE_DB_PATH=target/test-sqlite/portable-roundtrip.db",
-                "spring.jpa.hibernate.ddl-auto=create-drop"
+                "spring.jpa.hibernate.ddl-auto=validate"
         }
 )
 class PortableDumpSqliteRoundTripTest {

@@ -27,14 +27,8 @@ public class Card {
     private String back;
 
     @JdbcTypeCode(SqlTypes.LONGVARCHAR)
-    @Column(name="tts_text")
-    private String ttsText;
-
-    @Column(name="tts_preset_id")
-    private Long ttsPresetId;
-
-    @Column(name="tts_display_side")
-    private String ttsDisplaySide = "BACK";
+    @Column(name="tts_config_json")
+    private String ttsConfigJson;
 
     @JoinColumn(name = "deck_id", nullable = false)
     @ManyToOne

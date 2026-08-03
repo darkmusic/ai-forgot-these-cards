@@ -66,6 +66,7 @@ public class DatabaseVendorEnvironmentPostProcessor implements EnvironmentPostPr
 
         // Hibernate 6: dialect is provided by hibernate-community-dialects.
         overrides.put("spring.jpa.database-platform", "org.hibernate.community.dialect.SQLiteDialect");
+        overrides.put("spring.flyway.locations", "classpath:db/migration/sqlite");
 
         // SQLite is single-writer; keep pool small to avoid lock contention.
         // Using 2 avoids startup deadlocks between schema generation and init runners.

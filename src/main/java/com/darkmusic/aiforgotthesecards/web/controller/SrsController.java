@@ -104,7 +104,7 @@ public class SrsController {
             deckInfo.setTemplateBack(card.getDeck().getTemplateBack());
             deckInfo.setTtsEnabled(card.getDeck().isTtsEnabled());
             deckInfo.setTtsModelId(card.getDeck().getTtsModelId());
-            deckInfo.setTtsDefaultPresetId(card.getDeck().getTtsDefaultPresetId());
+            deckInfo.setTtsConfigJson(card.getDeck().getTtsConfigJson());
             response.setDeck(deckInfo);
 
             if (srsRecord.isEmpty()) {
@@ -176,7 +176,7 @@ public class SrsController {
             deckInfo.setTemplateBack(deck.getTemplateBack());
             deckInfo.setTtsEnabled(deck.isTtsEnabled());
             deckInfo.setTtsModelId(deck.getTtsModelId());
-            deckInfo.setTtsDefaultPresetId(deck.getTtsDefaultPresetId());
+            deckInfo.setTtsConfigJson(deck.getTtsConfigJson());
             response.setDeck(deckInfo);
 
             // Set SRS metadata if available

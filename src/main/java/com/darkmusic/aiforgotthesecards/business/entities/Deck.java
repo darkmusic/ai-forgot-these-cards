@@ -57,6 +57,7 @@ public class Deck {
     @Column(name="tts_model_id")
     private String ttsModelId;
 
-    @Column(name="tts_default_preset_id")
-    private Long ttsDefaultPresetId;
+    @JdbcTypeCode(SqlTypes.LONGVARCHAR)
+    @Column(name="tts_config_json")
+    private String ttsConfigJson;
 }

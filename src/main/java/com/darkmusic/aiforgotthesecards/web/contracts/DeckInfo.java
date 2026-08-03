@@ -16,5 +16,5 @@ public class DeckInfo {
     private String templateBack;
     private boolean ttsEnabled;
     private String ttsModelId;
-    private Long ttsDefaultPresetId;
+    private String ttsConfigJson;
 }

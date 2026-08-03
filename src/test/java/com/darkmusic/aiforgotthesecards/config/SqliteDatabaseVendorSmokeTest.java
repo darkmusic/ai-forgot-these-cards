@@ -16,8 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
     properties = {
         "DB_VENDOR=sqlite",
         "SQLITE_DB_PATH=target/test-sqlite/cards-test.db",
-        // keep the test isolated
-        "spring.jpa.hibernate.ddl-auto=create-drop",
+        "spring.jpa.hibernate.ddl-auto=validate",
         "spring.jpa.show-sql=false"
     }
 )
@@ -28,6 +27,7 @@ class SqliteDatabaseVendorSmokeTest {
     static {
         try {
             Files.createDirectories(DB_FILE.toAbsolutePath().getParent());
+            Files.deleteIfExists(DB_FILE);
         } catch (Exception e) {
             throw new RuntimeException("Failed to create temp SQLite directory for test", e);
         }

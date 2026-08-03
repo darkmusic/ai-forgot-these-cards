@@ -29,10 +29,6 @@ public class TtsAudio {
     @ManyToOne
     private Card card;
 
-    @JoinColumn(name = "preset_id")
-    @ManyToOne
-    private TtsPreset preset;
-
     @Column(name = "cache_key", nullable = false)
     private String cacheKey;
 
@@ -49,10 +45,29 @@ public class TtsAudio {
     @Column(name = "model_id", nullable = false)
     private String modelId;
 
-    @Column(name = "preset_name")
-    private String presetName;
+    @Column(name = "target")
+    private String target;
+
+    @Column(name = "variant")
+    private String variant;
+
+    @Column(name = "language")
+    private String language;
+
+    @Column(name = "text_source")
+    private String textSource;
 
     @JdbcTypeCode(SqlTypes.LONGVARCHAR)
-    @Column(name = "preset_config_json")
-    private String presetConfigJson;
+    @Column(name = "resolved_text")
+    private String resolvedText;
+
+    @Column(name = "voice")
+    private String voice;
+
+    @Column(name = "speed")
+    private Double speed;
+
+    @JdbcTypeCode(SqlTypes.LONGVARCHAR)
+    @Column(name = "config_json")
+    private String configJson;
 }

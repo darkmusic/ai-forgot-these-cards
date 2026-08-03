@@ -57,7 +57,6 @@ public class PortableDumpService {
             TableSpec.of("deck", List.of("id")),
             TableSpec.of("tag", List.of("id")),
             TableSpec.of("deck_tag", List.of("deck_id", "tag_id")),
-            TableSpec.of("tts_preset", List.of("id")),
             TableSpec.of("card", List.of("id")),
             TableSpec.of("card_tag", List.of("card_id", "tag_id")),
             TableSpec.of("user_card_srs", List.of("id")),
