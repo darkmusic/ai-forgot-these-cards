@@ -56,6 +56,10 @@ This page shows some key screens from **Ai Forgot These Cards**.
 
 ![Cram session](../images/cram_session.png)
 
+## TTS-enabled Cram Session
+
+![TTS-enabled Cram Session](../images/card_with_tts.png)
+
 ## Admin
 
 ![Admin home](../images/admin_home.png)

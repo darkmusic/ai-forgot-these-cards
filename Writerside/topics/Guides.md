@@ -10,6 +10,7 @@ This section contains deeper guides for operating and understanding the project.
 - Run prebuilt container images (GHCR): [Container-images.md](Container-images.md)
 - Database management and portability: [Database.md](Database.md)
 - AI providers (hosted or llama.cpp): [AI-Integration.md](AI-Integration.md)
+- Optional multilingual TTS: [Text-to-speech.md](Text-to-speech.md)
 - Security, login, and CSRF: [Security-and-auth.md](Security-and-auth.md)
 - Operations (logs, actuator, Swagger): [Operations-and-monitoring.md](Operations-and-monitoring.md)
 - Local development workflows: [Development.md](Development.md)

@@ -51,6 +51,18 @@ public class Deck {
     @Column(name="template_back")
     private String templateBack;
 
+    @JdbcTypeCode(SqlTypes.LONGVARCHAR)
+    @Column(name="always_applied_template_front")
+    private String alwaysAppliedTemplateFront;
+
+    @JdbcTypeCode(SqlTypes.LONGVARCHAR)
+    @Column(name="always_applied_template_back")
+    private String alwaysAppliedTemplateBack;
+
+    @JdbcTypeCode(SqlTypes.LONGVARCHAR)
+    @Column(name="presentation_config_json")
+    private String presentationConfigJson;
+
     @Column(name="tts_enabled", nullable = false)
     private boolean ttsEnabled = false;
 

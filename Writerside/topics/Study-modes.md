@@ -36,6 +36,15 @@ The deck list includes SRS counts per deck:
 - Reviewed
 - Total
 
+## Deck card templates
+
+Decks support two kinds of front/back templates:
+
+- **Template Front Default** and **Template Back Default** are copied into newly created cards.
+- **Always Applied Template Front** and **Always Applied Template Back** are stored on the deck and applied only when cards are rendered in deck view, review, and cram. They are not copied into card content and are not shown in the card editor.
+
+Decks can also enable optional TTS controls in card view, review, and cram. See [Text-to-speech.md](Text-to-speech.md) for multilingual TTS, card source labels, side-specific playback, and script font customization.
+
 ## Making efficient use of tags
 
 Tags are a powerful way to organize and filter your cards during study sessions, so make use of them! Here are some tips for using tags effectively:

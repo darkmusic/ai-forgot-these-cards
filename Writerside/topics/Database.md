@@ -15,6 +15,8 @@ Schema changes are managed by Flyway, and pending migrations are applied automat
 
 If Flyway sees an existing non-empty database with no migration history table, it baselines that database at V1. This lets databases originally created by Hibernate start cleanly after upgrading to the Flyway-enabled app. Empty databases still run `V1__initial_schema.sql` normally.
 
+Hibernate validates the migrated schema at startup (`ddl-auto=validate`). It no longer owns routine schema evolution, so application changes that add tables or columns need explicit Flyway scripts.
+
 Useful explicit commands:
 
 ```bash
@@ -35,7 +37,26 @@ make db-baseline-postgres
 make db-baseline-sqlite
 ```
 
-New schema changes should be added as paired migrations under `db/migration/postgresql` and `db/migration/sqlite`.
+New schema changes should be added as paired migrations under:
+
+- `src/main/resources/db/migration/postgresql`
+- `src/main/resources/db/migration/sqlite`
+
+Use the same version number and description in both locations, for example:
+
+```text
+V7__my_feature.sql
+```
+
+PostgreSQL is the default migration location. When `DB_VENDOR=sqlite`, `DatabaseVendorEnvironmentPostProcessor` switches Flyway to the SQLite migration location, creates the SQLite DB parent directory if necessary, configures the SQLite JDBC URL, enables foreign keys/WAL-related settings, and keeps the Hikari pool small to avoid single-writer lock contention.
+
+Recent migration groups:
+
+- `V2__add_tts_schema.sql`: initial TTS schema and audio metadata.
+- `V3__semantic_tts_config.sql`: deck/card TTS JSON config and semantic audio metadata.
+- `V4__remove_legacy_tts_preset_schema.sql`: removes the first preset/text-field TTS schema after migrating config forward.
+- `V5__deck_presentation_config.sql`: script-aware card presentation config.
+- `V6__deck_always_applied_templates.sql`: render-only deck templates.
 
 ### Export (Postgres-only)
 
@@ -68,6 +89,8 @@ make import-db-container
 ## Portable migrations (Postgres <-> SQLite)
 
 The project supports a vendor-neutral “portable dump” format (ZIP + JSONL) to move between Postgres and SQLite.
+
+Portable dumps include database metadata such as deck/card TTS config and `tts_audio` rows. They do not embed generated WAV files from `TTS_STORAGE_DIR`; back up that directory separately if cached audio should be preserved across a migration.
 
 Common workflows:
 

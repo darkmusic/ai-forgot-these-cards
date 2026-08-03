@@ -23,6 +23,7 @@
         <toc-element topic="Container-images.md"/>
         <toc-element topic="Database.md"/>
         <toc-element topic="AI-Integration.md"/>
+        <toc-element topic="Text-to-speech.md"/>
         <toc-element topic="Security-and-auth.md"/>
         <toc-element topic="Operations-and-monitoring.md"/>
         <toc-element topic="Development.md"/>

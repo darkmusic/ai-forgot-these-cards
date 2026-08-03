@@ -45,6 +45,24 @@ If you run llama.cpp on the host, the container targets use a host gateway mappi
 
 See: [AI-Integration.md](AI-Integration.md)
 
+## TTS settings (optional)
+
+| Variable | Purpose |
+|---|---|
+| `ENABLE_TTS` | Enables Makefile-managed TTS sidecar build/run behavior when set to `1`. |
+| `TTS_SERVICE_URL` | URL used by the Java backend to call the Python sidecar. |
+| `TTS_STORAGE_DIR` | Backend filesystem directory for cached/generated WAV files. |
+| `TTS_REQUEST_TIMEOUT` | Maximum backend wait time for model load and synthesis. |
+| `TTS_HOST_PORT` | Host port mapped to the sidecar's `8091`. |
+| `HF_TOKEN` | Optional Hugging Face token for gated/private models. |
+| `TTS_PRELOAD_MODELS` | Optional comma-separated Hugging Face model ids to prefetch during image build. |
+| `TTS_TORCH_INDEX_URL` | PyTorch wheel index; CPU by default, CUDA indexes for GPU builds. |
+| `TTS_TORCH_VERSION` | Torch package version installed in the sidecar image. |
+| `TTS_TORCHAUDIO_VERSION` | Torchaudio package version installed in the sidecar image. |
+| `TTS_DOCKER_RUN_FLAGS` | Extra runtime flags, for example `--gpus all` on NVIDIA hosts. |
+
+See: [Text-to-speech.md](Text-to-speech.md)
+
 ## Build-time caches (optional)
 
 - `USE_NEXUS_MAVEN=1` enables Maven dependency caching via a local Nexus.

@@ -1,4 +1,4 @@
-!#/bin/sh
+#!/bin/sh
 
 if [ -n "$NEXUS_APT_MIRROR_DEBIAN_BOOKWORM_URL" ] && [ -n "$NEXUS_APT_MIRROR_SECURITY_DEBIAN_BOOKWORM_URL" ]; then \
       echo "Configuring APT to use Nexus mirrors" && \

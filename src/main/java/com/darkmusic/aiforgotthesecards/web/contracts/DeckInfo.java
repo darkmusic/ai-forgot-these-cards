@@ -14,6 +14,9 @@ public class DeckInfo {
     private String name;
     private String templateFront;
     private String templateBack;
+    private String alwaysAppliedTemplateFront;
+    private String alwaysAppliedTemplateBack;
+    private String presentationConfigJson;
     private boolean ttsEnabled;
     private String ttsModelId;
     private String ttsConfigJson;

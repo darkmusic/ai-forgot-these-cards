@@ -21,6 +21,8 @@ It’s designed for people who want a fast workflow for building study materials
 - **SRS review sessions** (global or per-deck) with due/new/reviewed/total counts
 - **Cram mode** for full-deck study without affecting schedules
 - **Markdown** and **LaTeX** rendering in cards
+- **Deck templates** for new-card defaults and render-only content that is always shown with each card
+- **Optional multilingual TTS** with deck/card JSON configuration and a Python/PyTorch sidecar
 - **Bulk entry/updating** of cards
 - **Tag filtering** and a **tag cloud** in Cram and Review
 - Containerized build + deployment (no local JDK/Node required for the default workflow)

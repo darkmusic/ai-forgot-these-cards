@@ -96,16 +96,7 @@ public class SrsController {
             SrsCardResponse response = new SrsCardResponse();
             response.setCard(card);
 
-            // Create DeckInfo to avoid circular reference issues
-            DeckInfo deckInfo = new DeckInfo();
-            deckInfo.setId(card.getDeck().getId());
-            deckInfo.setName(card.getDeck().getName());
-            deckInfo.setTemplateFront(card.getDeck().getTemplateFront());
-            deckInfo.setTemplateBack(card.getDeck().getTemplateBack());
-            deckInfo.setTtsEnabled(card.getDeck().isTtsEnabled());
-            deckInfo.setTtsModelId(card.getDeck().getTtsModelId());
-            deckInfo.setTtsConfigJson(card.getDeck().getTtsConfigJson());
-            response.setDeck(deckInfo);
+            response.setDeck(toDeckInfo(card.getDeck()));
 
             if (srsRecord.isEmpty()) {
                 // Never reviewed - add to queue
@@ -168,16 +159,7 @@ public class SrsController {
             SrsCardResponse response = new SrsCardResponse();
             response.setCard(card);
 
-            // Create DeckInfo to avoid circular reference issues
-            DeckInfo deckInfo = new DeckInfo();
-            deckInfo.setId(deck.getId());
-            deckInfo.setName(deck.getName());
-            deckInfo.setTemplateFront(deck.getTemplateFront());
-            deckInfo.setTemplateBack(deck.getTemplateBack());
-            deckInfo.setTtsEnabled(deck.isTtsEnabled());
-            deckInfo.setTtsModelId(deck.getTtsModelId());
-            deckInfo.setTtsConfigJson(deck.getTtsConfigJson());
-            response.setDeck(deckInfo);
+            response.setDeck(toDeckInfo(deck));
 
             // Set SRS metadata if available
             Optional<UserCardSrs> srsRecord = userCardSrsDAO.findByUserAndCard(user, card);
@@ -313,5 +295,20 @@ public class SrsController {
         private long reviewedCards;
         private long newCards;
         private long dueCards;
+    }
+
+    private DeckInfo toDeckInfo(Deck deck) {
+        DeckInfo deckInfo = new DeckInfo();
+        deckInfo.setId(deck.getId());
+        deckInfo.setName(deck.getName());
+        deckInfo.setTemplateFront(deck.getTemplateFront());
+        deckInfo.setTemplateBack(deck.getTemplateBack());
+        deckInfo.setAlwaysAppliedTemplateFront(deck.getAlwaysAppliedTemplateFront());
+        deckInfo.setAlwaysAppliedTemplateBack(deck.getAlwaysAppliedTemplateBack());
+        deckInfo.setPresentationConfigJson(deck.getPresentationConfigJson());
+        deckInfo.setTtsEnabled(deck.isTtsEnabled());
+        deckInfo.setTtsModelId(deck.getTtsModelId());
+        deckInfo.setTtsConfigJson(deck.getTtsConfigJson());
+        return deckInfo;
     }
 }

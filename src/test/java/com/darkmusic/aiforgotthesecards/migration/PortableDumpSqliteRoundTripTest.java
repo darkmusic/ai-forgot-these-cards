@@ -42,6 +42,13 @@ class PortableDumpSqliteRoundTripTest {
 
     private static final Path SQLITE_PATH = Path.of("target/test-sqlite/portable-roundtrip.db");
     private static final Path ZIP_PATH = Path.of("target/test-sqlite/portable-roundtrip.zip");
+    private static final String PRESENTATION_CONFIG_JSON = """
+            {
+              "scriptStyles": {
+                "Arab": { "fontFamily": "'Noto Nastaliq Urdu', serif" }
+              }
+            }
+            """;
 
     @BeforeAll
     static void cleanup() throws Exception {
@@ -101,6 +108,7 @@ class PortableDumpSqliteRoundTripTest {
         Deck deck = new Deck();
         deck.setName("Deck 1");
         deck.setDescription("Desc");
+        deck.setPresentationConfigJson(PRESENTATION_CONFIG_JSON);
         deck.setUser(user);
         deck.setTags(Set.of(tag));
         deckDAO.save(deck);
@@ -159,6 +167,8 @@ class PortableDumpSqliteRoundTripTest {
 
         User loaded = userDAO.findByUsername("alice").orElseThrow();
         assertNotNull(loaded.getId());
+        Deck loadedDeck = deckDAO.findById(deck.getId()).orElseThrow();
+        assertEquals(PRESENTATION_CONFIG_JSON, loadedDeck.getPresentationConfigJson());
 
         try (Connection c = dataSource.getConnection(); Statement st = c.createStatement()) {
             assertEquals(deckTagsBefore, countRows(st, "deck_tag"));

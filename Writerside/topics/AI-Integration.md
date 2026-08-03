@@ -44,33 +44,12 @@ Model loading can be slow for larger models. First request latency may be high w
 
 ## Optional TTS mode
 
-Decks can optionally enable text-to-speech. The Java backend owns deck/card settings,
-authentication, request timeouts, and filesystem WAV caching, then calls a Python
-sidecar for direct PyTorch/Transformers inference.
+Decks can optionally enable multilingual text-to-speech. The Java backend owns
+deck/card configuration, authentication, request timeouts, WAV caching, and audio
+streaming, then calls a Python/FastAPI sidecar for PyTorch/Transformers inference.
 
-### 1) Enable the sidecar
+The TTS system supports Hugging Face models such as `ai4bharat/indic-parler-tts`,
+semantic target/variant configuration, card-level overrides, script-aware font
+rendering, CPU or GPU sidecar images, and build-time model preloading.
 
-In `.env` set:
-
-- `ENABLE_TTS=1`
-- `TTS_SERVICE_URL=http://tts:8091`
-- `TTS_STORAGE_DIR=/data/tts`
-- `TTS_REQUEST_TIMEOUT=10m`
-
-If the Hugging Face model is gated, also set `HF_TOKEN` after accepting the model
-access terms in Hugging Face.
-
-### 2) Build and run
-
-```bash
-make build-deploy
-```
-
-When `ENABLE_TTS=1`, the Makefile builds and runs the `aiforgot/tts` FastAPI
-container. Model downloads are cached in the `tts-model-cache` Docker volume.
-
-### 3) Configure a deck
-
-In deck edit, enable TTS, set a model id such as `ai4bharat/indic-parler-tts`,
-and add one or more named presets. Presets can specify speaker, language,
-caption/style prompt, and advanced model generation JSON.
+See the dedicated guide: [Text-to-speech.md](Text-to-speech.md)

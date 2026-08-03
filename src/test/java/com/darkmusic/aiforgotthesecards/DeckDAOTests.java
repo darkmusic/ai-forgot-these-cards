@@ -9,9 +9,21 @@ import org.springframework.test.context.TestPropertySource;
 
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 @SpringBootTest
 @TestPropertySource("/application-test.properties")
 public class DeckDAOTests {
+    private static final String PRESENTATION_CONFIG_JSON = """
+            {
+              "scriptStyles": {
+                "Arab": { "fontFamily": "'Noto Nastaliq Urdu', serif" }
+              }
+            }
+            """;
+    private static final String ALWAYS_APPLIED_TEMPLATE_FRONT = "> Front-only deck note";
+    private static final String ALWAYS_APPLIED_TEMPLATE_BACK = "> Back-only deck note";
+
     @Autowired
     private DeckDAO deckDAO;
 
@@ -40,5 +52,27 @@ public class DeckDAOTests {
     void canCreateDeck() {
         System.out.println("Testing deck creation");
         createDeck(deckDAO, userDAO, tagDAO, themeDAO);
+    }
+
+    @Test
+    void persistsPresentationConfigJson() {
+        Deck deck = createDeck(deckDAO, userDAO, tagDAO, themeDAO);
+        deck.setPresentationConfigJson(PRESENTATION_CONFIG_JSON);
+        Deck saved = deckDAO.save(deck);
+
+        Deck loaded = deckDAO.findById(saved.getId()).orElseThrow();
+        assertEquals(PRESENTATION_CONFIG_JSON, loaded.getPresentationConfigJson());
+    }
+
+    @Test
+    void persistsAlwaysAppliedTemplates() {
+        Deck deck = createDeck(deckDAO, userDAO, tagDAO, themeDAO);
+        deck.setAlwaysAppliedTemplateFront(ALWAYS_APPLIED_TEMPLATE_FRONT);
+        deck.setAlwaysAppliedTemplateBack(ALWAYS_APPLIED_TEMPLATE_BACK);
+        Deck saved = deckDAO.save(deck);
+
+        Deck loaded = deckDAO.findById(saved.getId()).orElseThrow();
+        assertEquals(ALWAYS_APPLIED_TEMPLATE_FRONT, loaded.getAlwaysAppliedTemplateFront());
+        assertEquals(ALWAYS_APPLIED_TEMPLATE_BACK, loaded.getAlwaysAppliedTemplateBack());
     }
 }

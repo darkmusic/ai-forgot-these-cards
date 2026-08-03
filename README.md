@@ -5,25 +5,25 @@
 [![Release WAR Artifacts](https://github.com/darkmusic/ai-forgot-these-cards/actions/workflows/release.yml/badge.svg)](https://github.com/darkmusic/ai-forgot-these-cards/actions/workflows/release.yml)
 [![Build documentation](https://github.com/darkmusic/ai-forgot-these-cards/actions/workflows/build-docs.yml/badge.svg)](https://github.com/darkmusic/ai-forgot-these-cards/actions/workflows/build-docs.yml)
 
-AI-assisted flashcards: create decks/cards, study via SRS Review or Cram mode, and (optionally) chat with an LLM while authoring cards.
+AI-assisted flashcards: create decks/cards, study via SRS Review or Cram mode, multilingual on-demand TTS generation+playback support, and (optionally) chat with an LLM while authoring cards.
 
 ![Screenshot](res/screenshots/screenshot.png)
+
+![TT‌S Support](res/screenshots/tts_suspport.png)
 
 ## Installation
 
 Two supported installation paths:
 
-1) **GitHub Releases (WAR artifacts)**
+1. **GitHub Releases (WAR artifacts)**
+   - Download: <https://github.com/darkmusic/ai-forgot-these-cards/releases>
+   - Install guide: <https://darkmusic.github.io/ai-forgot-these-cards/releases.html>
 
-    - Download: <https://github.com/darkmusic/ai-forgot-these-cards/releases>
-    - Install guide: <https://darkmusic.github.io/ai-forgot-these-cards/releases.html>
-
-1) **Prebuilt container images (GHCR)**
-
-    - Images:
-        - `ghcr.io/darkmusic/ai-forgot-these-cards-app`
-        - `ghcr.io/darkmusic/ai-forgot-these-cards-web`
-    - Install guide: <https://darkmusic.github.io/ai-forgot-these-cards/container-images.html>
+1. **Prebuilt container images (GHCR)**
+   - Images:
+     - `ghcr.io/darkmusic/ai-forgot-these-cards-app`
+     - `ghcr.io/darkmusic/ai-forgot-these-cards-web`
+   - Install guide: <https://darkmusic.github.io/ai-forgot-these-cards/container-images.html>
 
 ## Quick links
 
