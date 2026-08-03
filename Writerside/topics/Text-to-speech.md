@@ -31,7 +31,7 @@ Set these in `.env` when using the Makefile-managed sidecar:
 
 The Java properties are also available directly:
 
-```properties
+```text
 tts.service-url=${TTS_SERVICE_URL:http://localhost:8091}
 tts.storage-dir=${TTS_STORAGE_DIR:./data/tts}
 tts.request-timeout=${TTS_REQUEST_TIMEOUT:PT30M}
@@ -192,7 +192,7 @@ Example with tuned Parler generation:
 
 Cards do not need a separate TTS text field. The backend resolves text from card Markdown fields. Common source labels include:
 
-```markdown
+```text
 Hindi: नमस्ते
 Urdu Script: سلام
 Romanized: namaste
@@ -230,7 +230,7 @@ Example card override:
 
 A card can include a fenced TTS metadata block to override target voices without editing JSON:
 
-```markdown
+```text
 Hindi: किताब
 Urdu Script: کتاب
 
