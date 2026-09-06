@@ -7,7 +7,7 @@ Ai Forgot These Cards is built as a SPA + backend + database, with optional AI i
 - **Frontend**: React/Vite SPA
 - **Backend**: Spring Boot application packaged as a WAR and run on Tomcat
 - **Persistence**: JPA/Hibernate, backed by Postgres (default) or SQLite single-file mode
-- **AI (optional)**: Spring AI ChatClient talking to an OpenAI-compatible API (hosted provider or llama.cpp)
+- **AI (optional)**: Spring AI ChatClient talking to an OpenAI-compatible API (hosted provider or llama.cpp), including a validated SSE deck-assist endpoint for the bulk card AI tools
 - **TTS (optional)**: Java-owned TTS API and WAV cache backed by a Python/FastAPI PyTorch sidecar
 
 ```mermaid

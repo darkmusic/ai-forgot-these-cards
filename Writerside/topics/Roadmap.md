@@ -12,6 +12,7 @@ This project is actively evolving. Highlights from the current roadmap:
 - Optional build-time dependency caching via Nexus (Maven + APT)
 - SRS-based review mode and cram mode
 - Tag filtering + tag cloud
+- Bulk card AI tools in the bulk editor (generate, correct, enhance, tags, duplicate merge review, topic gaps)
 - Swagger / OpenAPI support
 - SQLite single-file mode
 
