@@ -40,6 +40,10 @@ This page shows some key screens from **Ai Forgot These Cards**.
 
 ![Bulk entry/updating](../images/bulk_entry.png)
 
+The bulk editor also includes an **AI tools** frame for generating, correcting,
+enhancing, tagging, deduplicating, and gap-checking the draft. See
+[Bulk-ai-tools.md](Bulk-ai-tools.md).
+
 ## Markdown table support
 
 ![Markdown table support](../images/markdown_tables.png)

@@ -14,6 +14,7 @@ It’s designed for people who want a fast workflow for building study materials
   - **Review (SRS)**: shows due/new cards and updates scheduling based on your rating
   - **Cram**: studies all cards without changing SRS scheduling
 - Use AI as an assistant while creating/editing cards (optional)
+- Generate, correct, enhance, tag, deduplicate, and gap-check whole decks with AI tools in the bulk editor (optional)
 
 ## Key features
 
@@ -23,7 +24,7 @@ It’s designed for people who want a fast workflow for building study materials
 - **Markdown** and **LaTeX** rendering in cards
 - **Deck templates** for new-card defaults and render-only content that is always shown with each card
 - **Optional multilingual TTS** with deck/card JSON configuration and a Python/PyTorch sidecar
-- **Bulk entry/updating** of cards
+- **Bulk entry/updating** of cards, with **AI tools** to generate, correct, enhance, tag, merge duplicates, and find topic gaps across the draft
 - **Tag filtering** and a **tag cloud** in Cram and Review
 - Containerized build + deployment (no local JDK/Node required for the default workflow)
 

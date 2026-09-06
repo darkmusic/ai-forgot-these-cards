@@ -42,6 +42,20 @@ This value must be reachable **from inside the app container**. The Makefile add
 
 Model loading can be slow for larger models. First request latency may be high while tensors load.
 
+## Bulk card AI tools (deck assist)
+
+Beyond the per-card AI helpers, the bulk entry editor ships AI tools for the whole
+deck draft: generating additional cards, correcting facts, enhancing explanations,
+additive tag suggestions, duplicate merge review, and topic gap analysis. They run
+against the same OpenAI-compatible endpoint configured above, through a validated
+SSE endpoint (`POST /api/ai/deck-assist`).
+
+Model quality and context size matter here: the request carries the deck name and
+draft, and responses are strictly validated. Larger decks benefit from a model with
+a large context window.
+
+See the dedicated guide: [Bulk-ai-tools.md](Bulk-ai-tools.md)
+
 ## Optional TTS mode
 
 Decks can optionally enable multilingual text-to-speech. The Java backend owns

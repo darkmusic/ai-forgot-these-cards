@@ -43,6 +43,8 @@ Related commands:
 
 If you run llama.cpp on the host, the container targets use a host gateway mapping so `http://host.docker.internal:<port>` can work on Linux.
 
+The local llama.cpp CUDA build also accepts an optional `CUDA_HOST_COMPILER` variable (leave empty to let CMake auto-detect; set it when `nvcc` picks the wrong host gcc).
+
 See: [AI-Integration.md](AI-Integration.md)
 
 ## TTS settings (optional)
