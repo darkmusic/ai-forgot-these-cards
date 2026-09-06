@@ -9,6 +9,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -28,6 +30,14 @@ class BulkAiSaveTests {
     @Autowired PlatformTransactionManager transactions;
 
     record Fixture(Long survivor, Long removed, Long survivorReview, Long removedReview, Long audio, Long deck) {}
+
+    // This test class runs with its own Spring context (docker-compose is disabled),
+    // so give it a dedicated in-memory DB. Otherwise its tag/deck mutations would leak
+    // into the shared "testdb" database used by the other @SpringBootTest classes.
+    @DynamicPropertySource
+    static void datasourceProps(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", () -> "jdbc:h2:mem:bulksavetests;DB_CLOSE_DELAY=-1");
+    }
 
     private Fixture fixture() {
         return new TransactionTemplate(transactions).execute(status -> {
