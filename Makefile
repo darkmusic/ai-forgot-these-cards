@@ -710,6 +710,9 @@ help:
 # Llamacpp Commands
 #######################################################################
 
+# Optional host compiler for the CUDA build; leave empty to let CMake auto-detect.
+CUDA_HOST_COMPILER ?=
+
 .PHONY: build-llamacpp-cpu
 build-llamacpp-cpu:
 	@echo "Building llama.cpp CPU server..."
@@ -725,7 +728,7 @@ build-llamacpp-cuda:
 	cd dep/llama.cpp && \
 	   git checkout master && \
 	   git pull && \
-		 cmake -B build -DGGML_CUDA=ON -DCMAKE_CUDA_HOST_COMPILER=/usr/x86_64-pc-linux-gnu/gcc-bin/14/gcc && \
+		 cmake -B build -DGGML_CUDA=ON $(if $(CUDA_HOST_COMPILER),-DCMAKE_CUDA_HOST_COMPILER=$(CUDA_HOST_COMPILER)) && \
 		 cmake --build build --config Release -j 4
 
 .PHONY: start-llamacpp

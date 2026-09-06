@@ -20,6 +20,8 @@ import java.util.Set;
 public class DeckAssistService {
     private static final Set<String> OPERATIONS = Set.of("generate", "correct", "enhance", "duplicates", "tags", "gaps");
     private static final String FINAL_MARKER = "<|channel|>final<|message|>";
+    private static final int MAX_CARDS = 200;
+    private static final int MAX_CARD_TEXT = 5000;
     private final ChatClient client;
     private final ObjectMapper mapper;
 
@@ -35,12 +37,14 @@ public class DeckAssistService {
         require(request != null && request.operation() != null && OPERATIONS.contains(request.operation()), "Unknown AI operation.");
         require(request.deckName() != null && !request.deckName().isBlank(), "A deck name is required.");
         require(request.cards() != null, "Draft cards are required.");
+        require(request.cards().size() <= MAX_CARDS, "Limit requests to 200 cards.");
         require(request.instructions() == null || request.instructions().length() <= 2000, "Custom instructions must be at most 2,000 characters.");
         require(request.difficulty() == null || Set.of("match", "beginner", "intermediate", "advanced").contains(request.difficulty()), "Invalid difficulty.");
         Set<String> ids = new HashSet<>();
         for (var card : request.cards()) {
             require(card != null && card.rowId() != null && !card.rowId().isBlank() && ids.add(card.rowId()), "Draft row identifiers must be unique.");
             require(card.front() != null && card.back() != null && !(card.front().isBlank() && card.back().isBlank()), "Exclude empty cards from the request.");
+            require(card.front().length() <= MAX_CARD_TEXT && card.back().length() <= MAX_CARD_TEXT, "Card front and back must each be at most 5,000 characters.");
             require(card.tags() != null && card.tags().stream().allMatch(t -> t != null && !t.isBlank()), "Invalid draft tags.");
         }
         if (request.operation().equals("generate")) {

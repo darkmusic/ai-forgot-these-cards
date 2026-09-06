@@ -109,6 +109,15 @@ class DeckAssistServiceTests {
         verify(model, never()).call(any(Prompt.class));
     }
 
+    @Test void capsDraftCardsAndCardTextBeforeCallingModel() {
+        var longText = List.of(new DeckAssistRequest.DraftCard("row-1", "x".repeat(5001), "B", List.of()));
+        assertThrows(IllegalArgumentException.class, () -> service.validateRequest(new DeckAssistRequest("correct", "Deck", longText, null, null, null, "")));
+        var many = java.util.stream.IntStream.range(0, 201).mapToObj(i -> new DeckAssistRequest.DraftCard("row-" + i, "A" + i, "B" + i, List.of())).toList();
+        assertThrows(IllegalArgumentException.class, () -> service.validateRequest(new DeckAssistRequest("correct", "Deck", many, null, null, null, "")));
+        assertDoesNotThrow(() -> service.validateRequest(new DeckAssistRequest("correct", "Deck", many.subList(0, 200), null, null, null, "")));
+        verify(model, never()).call(any(Prompt.class));
+    }
+
     @Test void promptsBoundEachOperation() {
         assertTrue(service.systemPrompt("correct").contains("uncertain claims unchanged"));
         assertTrue(service.systemPrompt("enhance").contains("learning objectives"));

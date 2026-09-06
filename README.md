@@ -31,4 +31,3 @@ Two supported installation paths:
 - Frontend repo: <https://github.com/darkmusic/ai-forgot-this-frontend>
 - Contributing / releases: [CONTRIBUTING.md](CONTRIBUTING.md)
 - License: [LICENSE.txt](LICENSE.txt)
-- Test
