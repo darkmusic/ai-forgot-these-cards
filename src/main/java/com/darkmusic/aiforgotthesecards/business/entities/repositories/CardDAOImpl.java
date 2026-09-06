@@ -113,7 +113,13 @@ public class CardDAOImpl implements CardDAO {
 
     @Override
     public void deleteById(Long aLong) {
-        em.remove(em.find(Card.class, aLong));
+        Card card = em.find(Card.class, aLong);
+        if (card == null) return;
+        // A discarded merge member may already have reviews or cached audio.
+        // These records belong to that card, not to the surviving card.
+        em.createQuery("delete from UserCardSrs s where s.card.id = :id").setParameter("id", aLong).executeUpdate();
+        em.createQuery("delete from TtsAudio a where a.card.id = :id").setParameter("id", aLong).executeUpdate();
+        em.remove(card);
     }
 
     @Override

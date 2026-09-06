@@ -32,6 +32,9 @@ build/
 ### VS Code ###
 .vscode/
 
+### Repo-specific ###
+docs/
+
 ### App ###
 src/main/resources/static/
 src/main/webapp/

@@ -725,12 +725,44 @@ build-llamacpp-cuda:
 	cd dep/llama.cpp && \
 	   git checkout master && \
 	   git pull && \
-		 cmake -B build -DGGML_CUDA=ON && \
+		 cmake -B build -DGGML_CUDA=ON -DCMAKE_CUDA_HOST_COMPILER=/usr/x86_64-pc-linux-gnu/gcc-bin/14/gcc && \
 		 cmake --build build --config Release -j 4
 
 .PHONY: start-llamacpp
 start-llamacpp:
-	@./dep/llama.cpp/build/bin/llama-server --model $(LLAMA_MODEL_PATH) --port $(LLAMACPP_PORT) --host 0.0.0.0
+	@./dep/llama.cpp/build/bin/llama-server \
+		--model $(LLAMA_MODEL_PATH) --port $(LLAMACPP_PORT) --host 0.0.0.0 \
+		--alias muse-glimmer-30b-q3 \
+		--jinja \
+		--n-gpu-layers all \
+		--ctx-size 65536 \
+		--predict -1 \
+		--parallel 1 \
+		--batch-size 2048 \
+		--ubatch-size 512 \
+		--temp 1.0 \
+		--top-p 0.95 \
+		--top-k 64 \
+		--min-p 0.0 \
+		--repeat-penalty 1.0 \
+		--flash-attn on \
+		--reasoning on \
+		--reasoning-effort medium \
+		--reasoning-budget 1024 \
+		--reasoning-format auto \
+		--reasoning-preserve \
+		--cache-type-k q8_0 \
+		--cache-type-v q8_0 \
+		--cache-ram 0 \
+		--split-mode layer \
+		--kv-offload \
+		--kv-unified \
+		--no-context-shift \
+		--load-mode auto \
+		--spec-type none \
+		--no-perf \
+		--fit on \
+		--fit-target 512
 
 .PHONY: up-core down-core stop-core build-core build-core-nocache build-deploy-core build-deploy-core-nocache tail-core-logs
 

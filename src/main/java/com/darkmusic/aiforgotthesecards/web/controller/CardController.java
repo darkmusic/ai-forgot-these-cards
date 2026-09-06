@@ -11,6 +11,7 @@ import com.darkmusic.aiforgotthesecards.web.contracts.BulkCardItem;
 import com.darkmusic.aiforgotthesecards.web.contracts.BulkSaveCardsRequest;
 import com.darkmusic.aiforgotthesecards.web.contracts.BulkSaveCardsResponse;
 import lombok.Getter;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 @Getter
@@ -79,6 +80,7 @@ public class CardController {
 
     // -------- BULK SAVE --------
     @PostMapping("/api/card/bulk-save")
+    @Transactional
     public BulkSaveCardsResponse bulkSave(@RequestBody BulkSaveCardsRequest req) {
         int created = 0, updated = 0, deleted = 0;
 
